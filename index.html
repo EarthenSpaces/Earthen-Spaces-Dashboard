@@ -246,11 +246,6 @@ const projects = [
   {id:'vista-villas', name:'Vista Villas', loc:'Kelambakkam, OMR', live:true},
   {id:'old-madras', name:'Old Madras', loc:'Old Madras Road', live:false},
   {id:'nagaram', name:'Nagaram', loc:'Nagaram', live:false},
-  {id:'p4', name:'Project 4', loc:'—', live:false},
-  {id:'p5', name:'Project 5', loc:'—', live:false},
-  {id:'p6', name:'Project 6', loc:'—', live:false},
-  {id:'p7', name:'Project 7', loc:'—', live:false},
-  {id:'p8', name:'Project 8', loc:'—', live:false},
 ];
 
 const depts = ['Approvals','Projects','Marketing','Pre-sales','Sales','CP','CRM','Incentive'];
@@ -335,7 +330,7 @@ function renderHome(){
   <div class="hero-row">
     <div>
       <h1>All projects</h1>
-      <p>Status across all 8 developments and every department, pulled live from source sheets.</p>
+      <p>Status across all 3 developments and every department, pulled live from source sheets.</p>
     </div>
     <div class="rollup">
       <div class="stat"><div class="num">₹${r.revenue} Cr</div><div class="lbl">Revenue booked</div></div>
@@ -448,40 +443,7 @@ function renderSalesDept(){
     <div class="trace">Source: <span class="mono">Sales_Bookings</span></div>
   </div>
 
-  <div class="section-title">Add a new booking</div>
-  <div class="section-sub">${DATA_API_URL ? 'Writes directly to Sales_Bookings via the Apps Script endpoint.' : 'Connect DATA_API_URL to enable writing to the sheet.'}</div>
-  <div class="panel">
-    <div class="form-grid">
-      <div class="field"><label>Customer Name</label><input type="text" id="entry-book-0"></div>
-      <div class="field"><label>Unit No</label><input type="text" id="entry-book-1"></div>
-      <div class="field"><label>Total Value (Rs)</label><input type="number" id="entry-book-2"></div>
-      <div class="field"><label>Source</label><input type="text" id="entry-book-3"></div>
-      <div class="field"><label>Booking Date</label><input type="date" id="entry-book-4"></div>
-      <div class="field"><label>Sales Name</label><input type="text" id="entry-book-5"></div>
-    </div>
-    <button class="btn" onclick="submitBooking()">Add booking</button>
-    <div class="saved-msg" id="saved-msg-book">Saved — synced to Sales_Bookings</div>
-  </div>
   `;
-}
-
-async function submitBooking(){
-  const row = {
-    'Customer Name': document.getElementById('entry-book-0').value,
-    'Unit No': document.getElementById('entry-book-1').value,
-    'Total Value': document.getElementById('entry-book-2').value,
-    'Source': document.getElementById('entry-book-3').value,
-    'Booking Date': document.getElementById('entry-book-4').value,
-    'Sales Name': document.getElementById('entry-book-5').value,
-    'Project': 'Vista Villa'
-  };
-  if(DATA_API_URL){
-    try{
-      await fetch(DATA_API_URL, { method:'POST', body: JSON.stringify({action:'appendRow', sheet:'Sales_Bookings', row}) });
-    }catch(err){ console.warn('Write failed:', err); }
-  }
-  document.getElementById('saved-msg-book').style.display='block';
-  await refreshFromApi();
 }
 
 function renderSalesCharts(){
