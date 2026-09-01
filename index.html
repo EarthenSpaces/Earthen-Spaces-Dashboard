@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Earthen Spaces — Ops Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --soil-900:#2b2420;
+  --soil-700:#4a3f36;
+  --limestone:#f2ede3;
+  --limestone-dim:#e6ded0;
+  --clay:#a8543a;
+  --moss:#5c6e4a;
+  --moss-soft:#eef1e8;
+  --clay-soft:#f7e9e2;
+  --slate:#6b6459;
+  --line:#d9d0c0;
+  --card:#fbf9f4;
+  --amber:#b5843a;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--limestone);color:var(--soil-900);font-family:'Inter',sans-serif;}
+h1,h2,h3,.display{font-family:'Fraunces',serif;}
+.mono{font-family:'IBM Plex Mono',monospace;}
+a{color:inherit;text-decoration:none;}
+
+/* Top bar */
+header.top{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 32px;border-bottom:1px solid var(--line);
+  background:var(--limestone);position:sticky;top:0;z-index:10;
+}
+.brand{display:flex;align-items:baseline;gap:10px;cursor:pointer;}
+.brand .mark{width:10px;height:10px;background:var(--clay);border-radius:2px;display:inline-block;}
+.brand span{font-size:19px;font-weight:600;}
+.crumbs{font-size:13px;color:var(--slate);}
+.crumbs a:hover{color:var(--clay);}
+.live-pill{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--slate);}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--moss);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+main{max-width:1180px;margin:0 auto;padding:36px 32px 80px;}
+
+/* Home */
+.hero-row{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:28px;gap:24px;flex-wrap:wrap;}
+.hero-row h1{font-size:34px;font-weight:500;margin:0 0 6px;}
+.hero-row p{margin:0;color:var(--slate);font-size:15px;max-width:520px;}
+.rollup{display:flex;gap:28px;flex-wrap:wrap;}
+.rollup .stat{text-align:right;}
+.rollup .stat .num{font-family:'Fraunces',serif;font-size:26px;font-weight:500;}
+.rollup .stat .lbl{font-size:11.5px;color:var(--slate);text-transform:uppercase;letter-spacing:.04em;}
+
+.grid-projects{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;margin-top:22px;}
+.pcard{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:20px;position:relative;transition:border-color .15s;}
+.pcard.active{cursor:pointer;}
+.pcard.active:hover{border-color:var(--clay);}
+.pcard .loc{font-size:12px;color:var(--slate);margin-bottom:2px;}
+.pcard h3{font-size:19px;margin:0 0 14px;font-weight:500;}
+.pcard .metrics{display:flex;gap:18px;border-top:1px solid var(--line);padding-top:12px;}
+.pcard .metrics div{font-size:12px;color:var(--slate);}
+.pcard .metrics strong{display:block;font-family:'Fraunces',serif;font-size:17px;color:var(--soil-900);font-weight:500;}
+.pcard.soon{opacity:.5;}
+.pcard.soon::after{content:"Not yet connected";position:absolute;top:20px;right:20px;font-size:10.5px;color:var(--slate);}
+
+/* Project page */
+.dept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-top:24px;}
+.dtile{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:18px 20px;}
+.dtile.active{cursor:pointer;}
+.dtile.active:hover{border-color:var(--clay);}
+.dtile .name{font-size:14.5px;font-weight:600;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+.dtile .headline{font-family:'Fraunces',serif;font-size:24px;font-weight:500;}
+.dtile .sub{font-size:12px;color:var(--slate);margin-top:2px;}
+.tag{font-size:10px;padding:2px 7px;border-radius:20px;background:var(--moss-soft);color:var(--moss);}
+.tag.soon{background:var(--limestone-dim);color:var(--slate);}
+
+.finrow{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:24px;}
+.fincard{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:16px;}
+.fincard .lbl{font-size:11px;color:var(--slate);text-transform:uppercase;letter-spacing:.03em;}
+.fincard .val{font-family:'Fraunces',serif;font-size:20px;margin-top:6px;}
+
+/* Department (Sales) page */
+.section-title{font-size:20px;font-weight:500;margin:40px 0 4px;}
+.section-sub{font-size:13px;color:var(--slate);margin-bottom:16px;}
+.filters{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.filters select, .filters input{
+  font-family:'Inter';font-size:13px;padding:7px 10px;border:1px solid var(--line);
+  background:var(--card);border-radius:3px;color:var(--soil-900);
+}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:16px;}
+.kpi .lbl{font-size:11.5px;color:var(--slate);}
+.kpi .val{font-family:'Fraunces',serif;font-size:24px;margin-top:6px;font-weight:500;}
+.kpi .delta{font-size:11.5px;margin-top:4px;}
+.delta.up{color:var(--moss);} .delta.down{color:var(--clay);}
+
+.panel{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:20px;margin-top:16px;}
+.panel h3{margin:0 0 14px;font-size:15px;font-weight:600;}
+.two-col{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;}
+canvas{max-height:260px;}
+
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--slate);padding:8px 10px;border-bottom:1px solid var(--line);}
+td{padding:9px 10px;border-bottom:1px solid var(--limestone-dim);}
+tr:last-child td{border-bottom:none;}
+.src-badge{font-size:11px;padding:2px 8px;border-radius:20px;}
+.src-Marketing{background:#eef1e8;color:var(--moss);}
+.src-CP{background:#f7e9e2;color:var(--clay);}
+.src-Presales{background:#f0e8f5;color:#7a4f96;}
+.src-Sales{background:#eaf1f6;color:#3d6f8f;}
+
+.trace{font-size:11px;color:var(--slate);margin-top:8px;}
+.trace .mono{color:var(--slate);}
+
+/* Entry form */
+.form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.field label{display:block;font-size:12px;color:var(--slate);margin-bottom:5px;}
+.field input{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:3px;font-size:13px;background:#fff;}
+.btn{background:var(--soil-900);color:var(--limestone);border:none;padding:10px 18px;border-radius:3px;font-size:13px;cursor:pointer;margin-top:16px;}
+.btn:hover{background:var(--clay);}
+.saved-msg{font-size:12px;color:var(--moss);margin-top:10px;display:none;}
+
+footer{max-width:1180px;margin:0 auto;padding:0 32px 60px;color:var(--slate);font-size:12px;}
+.back-link{font-size:13px;color:var(--slate);display:inline-block;margin-bottom:18px;}
+.back-link:hover{color:var(--clay);}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand" onclick="nav('home')">
+    <span class="mark"></span><span>Earthen Spaces</span>
+  </div>
+  <div class="crumbs" id="crumbs"></div>
+  <div class="live-pill"><span class="dot"></span><span id="lastUpdated">Live · updating</span></div>
+</header>
+
+<main id="app"></main>
+<footer id="foot"></footer>
+
+<script>
+/* ---------- LIVE DATA CONFIG ----------
+   v3: reads the flat, one-tab-per-report Google Sheet (VistaVillas_Dashboard_Data_Fixed.xlsx)
+   via AppsScript_Code_v3.gs. Paste your /exec URL below after deploying v3.
+   Left blank, the dashboard runs on the mock store further down. */
+const DATA_API_URL = 'https://script.google.com/macros/s/AKfycbwL0Rp36wPB54cHNGla6wjlU6qsSgM6lhvnVA5cNVpx-aaFQG0fH2G3Dblgwke8f8U/exec';
+
+async function fetchLiveData(){
+  if(!DATA_API_URL) return null;
+  try{
+    const res = await fetch(DATA_API_URL);
+    if(!res.ok) throw new Error('bad response');
+    return await res.json();
+  }catch(err){
+    console.warn('Live fetch failed, staying on mock data:', err);
+    return null;
+  }
+}
+
+function safe(fn, fallback){
+  try{ const v = fn(); return (v===undefined||v===null||Number.isNaN(v)) ? fallback : v; }
+  catch(e){ return fallback; }
+}
+
+function sum(rows, key){ return (rows||[]).reduce((s,r)=>s+Number(r[key]||0),0); }
+function avg(rows, key){ const r=rows||[]; return r.length ? sum(r,key)/r.length : 0; }
+
+/* ---------- v3 LIVE DATA MAPPING ----------
+   AppsScript_Code_v3.gs returns { sheets: { <TabName>: [ {col: val, ...}, ... ], ... } }
+   for the 11 wired tabs (see WIRED_SHEETS in the script). Anything not wired
+   yet (Marketing funnel/cost/spend detail, Presales, CP, CRM) keeps showing
+   the mock data below until those tabs are populated and added to the script. */
+function mapLiveDataToStore(data){
+  if(!data || !data.sheets) return;
+  const S = data.sheets;
+  store.vv.rawSheets = S; // keep raw for any table that reads directly from a sheet
+
+  // Approvals — live
+  if(S.Approvals && S.Approvals.length){
+    store.vv.approvalsRows = S.Approvals;
+    store.vv.depts['Approvals'].headline =
+      safe(()=>`${S.Approvals.filter(r=>r.Status==='Done').length}/${S.Approvals.length} stages done`, store.vv.depts['Approvals'].headline);
+  }
+
+  // Projects — live (VV_Projects_Budget, VV_Projects_Workorder, VV_Project_SiteStatus)
+  if(S.VV_Projects_Budget && S.VV_Projects_Budget.length){
+    const budgeted = sum(S.VV_Projects_Budget, 'Budget');
+    store.vv.depts['Projects'].headline = safe(()=>`₹${(budgeted/10000000).toFixed(1)} Cr budgeted`, store.vv.depts['Projects'].headline);
+  }
+
+  // Sales — live (Sales_Bookings, VV_Inventory)
+  if(S.Sales_Bookings){
+    const s = store.vv.sales;
+    s.bookings = S.Sales_Bookings.length;
+    s.leads = S.Sales_Bookings.slice(-5).map(b => ({
+      name: b['Customer Name'], source: b['Source'] || 'Sales',
+      stage: 'Booked', updated: b['Booking Date'] || ''
+    }));
+  }
+  if(S.VV_Inventory && S.VV_Inventory.length){
+    const byType = {};
+    S.VV_Inventory.forEach(u => {
+      const t = u['Project'] || 'Unit';
+      byType[t] = byType[t] || {type:t, total:0, sold:0, avail:0, price:''};
+      byType[t].total++;
+      if(String(u['Availabality']).trim() === 'Booked') byType[t].sold++; else byType[t].avail++;
+      byType[t].price = u['Rate per Sq.ft'] ? `₹${u['Rate per Sq.ft']}/sqft` : '';
+    });
+    store.vv.sales.inventory = Object.values(byType);
+  }
+
+  // Marketing — partially live (Targets, Vendor, GTMPlan)
+  if(S.VV_Marketing_Targets && S.VV_Marketing_Targets.length){
+    const latest = S.VV_Marketing_Targets[S.VV_Marketing_Targets.length-1];
+    store.vv.depts['Marketing'].headline = safe(()=>`${latest['Metric']}: ${latest['Achieved']||0}/${latest['Target']}`, store.vv.depts['Marketing'].headline);
+  }
+
+  // Incentive — live (Incentive_Targets, now flat: Month, Team, Metric, Target, Achieved, Required)
+  if(S.Incentive_Targets && S.Incentive_Targets.length){
+    const rows = S.Incentive_Targets;
+    const latestMonth = rows[rows.length-1]['Month'];
+    const monthRows = rows.filter(r=>r.Month===latestMonth);
+    const totalTarget = sum(monthRows,'Target'), totalAchieved = sum(monthRows,'Achieved');
+    store.vv.depts['Incentive'].headline = safe(()=>`${Math.round(totalAchieved/totalTarget*100)}% to target (${latestMonth})`, store.vv.depts['Incentive'].headline);
+  }
+
+  // Company rollup — still Vista Villas only; extend once other projects have sheets
+  store.companyRollup.activeUnits = safe(()=>store.vv.sales.inventory.reduce((a,i)=>a+Number(i.sold||0),0), store.companyRollup.activeUnits);
+}
+
+async function refreshFromApi(){
+  const data = await fetchLiveData();
+  if(data){
+    mapLiveDataToStore(data);
+    document.getElementById('lastUpdated').textContent = 'Live · synced ' + new Date().toLocaleTimeString();
+    render();
+    if(location.hash.includes('dept/vista-villas/sales')) setTimeout(renderSalesCharts,0);
+  }
+}
+
+/* ---------- MOCK DATA STORE (used until DATA_API_URL is set above) ---------- */
+const projects = [
+  {id:'vista-villas', name:'Vista Villas', loc:'Kelambakkam, OMR', live:true},
+  {id:'old-madras', name:'Old Madras', loc:'Old Madras Road', live:false},
+  {id:'nagaram', name:'Nagaram', loc:'Nagaram', live:false},
+  {id:'p4', name:'Project 4', loc:'—', live:false},
+  {id:'p5', name:'Project 5', loc:'—', live:false},
+  {id:'p6', name:'Project 6', loc:'—', live:false},
+  {id:'p7', name:'Project 7', loc:'—', live:false},
+  {id:'p8', name:'Project 8', loc:'—', live:false},
+];
+
+const depts = ['Approvals','Projects','Marketing','Pre-sales','Sales','CP','CRM','Incentive'];
+
+let store = {
+  companyRollup: { revenue: 184.2, collections: 61.5, xirr: 22.4, activeUnits: 612 },
+  vv: {
+    financials: { land:42.5, dev:96.0, approvals:8.2, sm:11.4, admin:5.1 },
+    approvalsRows: [
+      {Stage:'Layout approval', Owner:'V. Krishnan', Dependency:'Land title clearance', 'Planned Date':'2024-02-01','Actual Date':'2024-02-10', Status:'Done'},
+      {Stage:'Environmental clearance', Owner:'V. Krishnan', Dependency:'Layout approval', 'Planned Date':'2024-03-01','Actual Date':'2024-03-20', Status:'Done'},
+      {Stage:'Building plan sanction', Owner:'R. Mahesh', Dependency:'Environmental clearance', 'Planned Date':'2024-04-15','Actual Date':'2024-05-02', Status:'Done'},
+    ],
+    rawSheets: {},
+    depts: {
+      Approvals:{headline:'6/9 stages'}, Projects:{headline:'₹96.4 Cr spent'},
+      Marketing:{headline:'₹1.8 Cr / qtr'}, 'Pre-sales':{headline:'1,240 calls'},
+      Sales:{headline:'', live:true}, CP:{headline:'34 active'},
+      CRM:{headline:'₹61.5 Cr collected'}, Incentive:{headline:'78% to target'}
+    },
+    sales: {
+      bookings: 142, prospects: 890, siteVisits: 356, bookingsDelta: 4.2, prospectsDelta: -1.1, svDelta: 6.7,
+      targetBookings: 160,
+      monthly: {labels:['Mar','Apr','May','Jun','Jul','Aug'], bookings:[18,22,19,25,27,31], visits:[52,58,49,63,66,68]},
+      sourceMix: {labels:['Marketing','CP','Pre-sales','Sales (walk-in)'], values:[38,27,19,16]},
+      inventory: [
+        {type:'Villa · 3BHK', total:120, sold:74, avail:46, price:'₹2.4 Cr'},
+        {type:'Villa · 4BHK', total:60, sold:39, avail:21, price:'₹3.1 Cr'},
+        {type:'Plot · 2400 sqft', total:180, sold:112, avail:68, price:'₹0.95 Cr'},
+        {type:'Plot · 3000 sqft', total:90, sold:41, avail:49, price:'₹1.2 Cr'},
+      ],
+      leads: [
+        {name:'R. Sundaram', source:'Marketing', stage:'Site visit done', updated:'2h ago'},
+        {name:'K. Priya', source:'CP', stage:'Booking in progress', updated:'4h ago'},
+        {name:'A. Fernandez', source:'Sales', stage:'Prospect', updated:'1d ago'},
+        {name:'M. Iqbal', source:'Pre-sales', stage:'Site visit scheduled', updated:'1d ago'},
+        {name:'S. Lakshmi', source:'CP', stage:'Booked', updated:'2d ago'},
+      ]
+    }
+  }
+};
+
+let charts = {};
+const fmtDelta = d => (d>=0?'▲ ':'▼ ')+Math.abs(d).toFixed(1)+'% vs last month';
+
+/* ---------- ROUTER ---------- */
+function nav(route){ location.hash = route; }
+window.addEventListener('hashchange', render);
+
+function render(){
+  const hash = location.hash.replace('#','') || 'home';
+  const parts = hash.split('/');
+  const app = document.getElementById('app');
+  const crumbs = document.getElementById('crumbs');
+
+  if(parts[0]==='home'){
+    crumbs.innerHTML = '';
+    app.innerHTML = renderHome();
+  } else if(parts[0]==='project' && parts[1]==='vista-villas'){
+    crumbs.innerHTML = `<a href="#home">Home</a> / Vista Villas`;
+    app.innerHTML = renderProject();
+  } else if(parts[0]==='dept' && parts[1]==='vista-villas' && parts[2]==='sales'){
+    crumbs.innerHTML = `<a href="#home">Home</a> / <a href="#project/vista-villas">Vista Villas</a> / Sales`;
+    app.innerHTML = renderSalesDept();
+    setTimeout(renderSalesCharts, 0);
+  } else if(parts[0]==='dept' && parts[1]==='vista-villas' && parts[2]==='approvals'){
+    crumbs.innerHTML = `<a href="#home">Home</a> / <a href="#project/vista-villas">Vista Villas</a> / Approvals`;
+    app.innerHTML = renderApprovalsDept();
+    setTimeout(renderApprovalsChart, 0);
+  } else {
+    location.hash = 'home';
+    return;
+  }
+  document.getElementById('foot').innerHTML =
+    `Vista Villas — Approvals, Projects (headline), Sales and Incentive (headline) are wired to your live sheet. Marketing/Pre-sales/CP/CRM detail pages still run on mock data until those tabs are filled and added to AppsScript_Code_v3.gs.`;
+}
+
+/* ---------- HOME ---------- */
+function renderHome(){
+  const r = store.companyRollup;
+  return `
+  <div class="hero-row">
+    <div>
+      <h1>All projects</h1>
+      <p>Status across all 8 developments and every department, pulled live from source sheets.</p>
+    </div>
+    <div class="rollup">
+      <div class="stat"><div class="num">₹${r.revenue} Cr</div><div class="lbl">Revenue booked</div></div>
+      <div class="stat"><div class="num">₹${r.collections} Cr</div><div class="lbl">Collections</div></div>
+      <div class="stat"><div class="num">${r.xirr}%</div><div class="lbl">Blended XIRR</div></div>
+      <div class="stat"><div class="num">${r.activeUnits}</div><div class="lbl">Active units</div></div>
+    </div>
+  </div>
+  <div class="grid-projects">
+    ${projects.map(p => `
+      <div class="pcard ${p.live?'active':'soon'}" ${p.live?`onclick="nav('project/${p.id}')"`:''}>
+        <div class="loc">${p.loc}</div>
+        <h3>${p.name}</h3>
+        ${p.live ? `
+        <div class="metrics">
+          <div><strong>${store.vv.sales.bookings}</strong>Bookings</div>
+          <div><strong>₹61.5 Cr</strong>Collected</div>
+          <div><strong>22.4%</strong>XIRR</div>
+        </div>` : `<div class="metrics"><div><strong>—</strong>No data yet</div></div>`}
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+/* ---------- PROJECT PAGE ---------- */
+function renderProject(){
+  const f = store.vv.financials;
+  const d = store.vv.depts;
+  return `
+  <a class="back-link" href="#home">← All projects</a>
+  <div class="hero-row">
+    <div><h1>Vista Villas</h1><p>Kelambakkam, OMR — 8 department views, updated live from source sheets.</p></div>
+  </div>
+  <div class="finrow">
+    <div class="fincard"><div class="lbl">Land cost</div><div class="val">₹${f.land} Cr</div></div>
+    <div class="fincard"><div class="lbl">Development</div><div class="val">₹${f.dev} Cr</div></div>
+    <div class="fincard"><div class="lbl">Approvals</div><div class="val">₹${f.approvals} Cr</div></div>
+    <div class="fincard"><div class="lbl">S&M</div><div class="val">₹${f.sm} Cr</div></div>
+    <div class="fincard"><div class="lbl">Admin</div><div class="val">₹${f.admin} Cr</div></div>
+  </div>
+  <div class="dept-grid">
+    ${depts.map(dn => {
+      const isSales = dn==='Sales';
+      const isApprovals = dn==='Approvals';
+      const clickable = isSales || isApprovals;
+      const headline = isSales ? store.vv.sales.bookings+' bookings' : d[dn].headline;
+      const wiredDepts = ['Approvals','Projects','Sales','Marketing','Incentive'];
+      const isLive = wiredDepts.includes(dn) && !!DATA_API_URL;
+      let onclick = '';
+      if(isSales) onclick = `nav('dept/vista-villas/sales')`;
+      else if(isApprovals) onclick = `nav('dept/vista-villas/approvals')`;
+      return `
+      <div class="dtile ${clickable?'active':''}" ${clickable?`onclick="${onclick}"`:''}>
+        <div class="name">${dn} ${isLive?'<span class="tag">Live</span>':'<span class="tag soon">Mock</span>'}</div>
+        <div class="headline">${headline}</div>
+        <div class="sub">${clickable?'Full report available':(isLive?'Headline synced from sheet':'Detail view not wired yet')}</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+/* ---------- SALES DEPARTMENT PAGE ---------- */
+function renderSalesDept(){
+  const s = store.vv.sales;
+  return `
+  <a class="back-link" href="#project/vista-villas">← Vista Villas</a>
+  <div class="hero-row">
+    <div><h1>Sales</h1><p>Bookings and inventory for Vista Villas — bookings/inventory from Sales_Bookings and VV_Inventory when live.</p></div>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="lbl">Bookings</div><div class="val" id="kpi-bookings">${s.bookings}</div><div class="delta up">${fmtDelta(s.bookingsDelta)}</div></div>
+    <div class="kpi"><div class="lbl">Prospects</div><div class="val" id="kpi-prospects">${s.prospects}</div><div class="delta down">${fmtDelta(s.prospectsDelta)}</div></div>
+    <div class="kpi"><div class="lbl">Site visits</div><div class="val" id="kpi-visits">${s.siteVisits}</div><div class="delta up">${fmtDelta(s.svDelta)}</div></div>
+    <div class="kpi"><div class="lbl">Target vs Achieved</div><div class="val">${s.bookings}/${s.targetBookings}</div><div class="delta ${s.bookings>=s.targetBookings*0.8?'up':'down'}">${Math.round(s.bookings/s.targetBookings*100)}% of target</div></div>
+  </div>
+
+  <div class="two-col" style="margin-top:16px;">
+    <div class="panel">
+      <h3>Bookings & site visits — trailing 6 months</h3>
+      <canvas id="chartTrend"></canvas>
+      <div class="trace">Source: <span class="mono">mock — no monthly-trend tab wired yet</span></div>
+    </div>
+    <div class="panel">
+      <h3>Lead source mix</h3>
+      <canvas id="chartSource"></canvas>
+      <div class="trace">Source: <span class="mono">mock — no source-mix tab wired yet</span></div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:16px;">
+    <h3>Inventory / price list</h3>
+    <table>
+      <thead><tr><th>Unit type</th><th>Total</th><th>Sold</th><th>Available</th><th>Price</th></tr></thead>
+      <tbody id="inv-body">
+        ${s.inventory.map(i=>`<tr><td>${i.type}</td><td>${i.total}</td><td>${i.sold}</td><td>${i.avail}</td><td>${i.price}</td></tr>`).join('')}
+      </tbody>
+    </table>
+    <div class="trace">Source: <span class="mono">VV_Inventory</span></div>
+  </div>
+
+  <div class="panel" style="margin-top:16px;">
+    <h3>Recent bookings</h3>
+    <table>
+      <thead><tr><th>Name</th><th>Source</th><th>Stage</th><th>Date</th></tr></thead>
+      <tbody id="lead-body">
+        ${s.leads.map(l=>`<tr data-src="${l.source}"><td>${l.name}</td><td><span class="src-badge src-${String(l.source).replace(' ','')}">${l.source}</span></td><td>${l.stage}</td><td>${l.updated}</td></tr>`).join('')}
+      </tbody>
+    </table>
+    <div class="trace">Source: <span class="mono">Sales_Bookings</span></div>
+  </div>
+
+  <div class="section-title">Add a new booking</div>
+  <div class="section-sub">${DATA_API_URL ? 'Writes directly to Sales_Bookings via the Apps Script endpoint.' : 'Connect DATA_API_URL to enable writing to the sheet.'}</div>
+  <div class="panel">
+    <div class="form-grid">
+      <div class="field"><label>Customer Name</label><input type="text" id="entry-book-0"></div>
+      <div class="field"><label>Unit No</label><input type="text" id="entry-book-1"></div>
+      <div class="field"><label>Total Value (Rs)</label><input type="number" id="entry-book-2"></div>
+      <div class="field"><label>Source</label><input type="text" id="entry-book-3"></div>
+      <div class="field"><label>Booking Date</label><input type="date" id="entry-book-4"></div>
+      <div class="field"><label>Sales Name</label><input type="text" id="entry-book-5"></div>
+    </div>
+    <button class="btn" onclick="submitBooking()">Add booking</button>
+    <div class="saved-msg" id="saved-msg-book">Saved — synced to Sales_Bookings</div>
+  </div>
+  `;
+}
+
+async function submitBooking(){
+  const row = {
+    'Customer Name': document.getElementById('entry-book-0').value,
+    'Unit No': document.getElementById('entry-book-1').value,
+    'Total Value': document.getElementById('entry-book-2').value,
+    'Source': document.getElementById('entry-book-3').value,
+    'Booking Date': document.getElementById('entry-book-4').value,
+    'Sales Name': document.getElementById('entry-book-5').value,
+    'Project': 'Vista Villa'
+  };
+  if(DATA_API_URL){
+    try{
+      await fetch(DATA_API_URL, { method:'POST', body: JSON.stringify({action:'appendRow', sheet:'Sales_Bookings', row}) });
+    }catch(err){ console.warn('Write failed:', err); }
+  }
+  document.getElementById('saved-msg-book').style.display='block';
+  await refreshFromApi();
+}
+
+function renderSalesCharts(){
+  const s = store.vv.sales;
+  const ctx1 = document.getElementById('chartTrend');
+  const ctx2 = document.getElementById('chartSource');
+  if(!ctx1||!ctx2) return;
+  if(charts.trend) charts.trend.destroy();
+  if(charts.source) charts.source.destroy();
+
+  charts.trend = new Chart(ctx1, {
+    type:'bar',
+    data:{ labels:s.monthly.labels, datasets:[
+      {label:'Bookings', data:s.monthly.bookings, backgroundColor:'#a8543a', borderRadius:2, order:2},
+      {label:'Site visits', data:s.monthly.visits, type:'line', borderColor:'#5c6e4a', backgroundColor:'#5c6e4a', tension:.35, yAxisID:'y1', order:1}
+    ]},
+    options:{ responsive:true, plugins:{legend:{position:'bottom', labels:{boxWidth:10,font:{size:11}}}},
+      scales:{ y:{beginAtZero:true, grid:{color:'#e6ded0'}}, y1:{position:'right', beginAtZero:true, grid:{display:false}}, x:{grid:{display:false}} } }
+  });
+
+  charts.source = new Chart(ctx2, {
+    type:'doughnut',
+    data:{ labels:s.sourceMix.labels, datasets:[{data:s.sourceMix.values, backgroundColor:['#5c6e4a','#a8543a','#7a4f96','#3d6f8f']}] },
+    options:{ responsive:true, plugins:{legend:{position:'bottom', labels:{boxWidth:10,font:{size:11}}}} }
+  });
+}
+
+/* ---------- APPROVALS DEPARTMENT PAGE ---------- */
+function renderApprovalsDept(){
+  const rows = store.vv.approvalsRows;
+  const done = rows.filter(r=>r.Status==='Done').length;
+  const pending = rows.filter(r=>r.Status==='Pending').length;
+  const notStarted = rows.filter(r=>r.Status==='Not started').length;
+  const overdue = rows.filter(r=>{
+    if(r.Status==='Done') return false;
+    const planned = new Date(r['Planned Date']);
+    return !isNaN(planned) && planned < new Date();
+  }).length;
+
+  return `
+  <a class="back-link" href="#project/vista-villas">← Vista Villas</a>
+  <div class="hero-row">
+    <div><h1>Approvals</h1><p>Stage-by-stage approval tracking for Vista Villas.</p></div>
+  </div>
+
+  <div class="filters">
+    <select onchange="applyApprovalsFilter(this.value)">
+      <option value="all">All statuses</option>
+      <option value="Done">Done</option>
+      <option value="Pending">Pending</option>
+      <option value="Not started">Not started</option>
+    </select>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="lbl">Stages done</div><div class="val">${done}/${rows.length}</div><div class="delta up">${rows.length?Math.round(done/rows.length*100):0}% complete</div></div>
+    <div class="kpi"><div class="lbl">Pending</div><div class="val">${pending}</div><div class="delta">Awaiting sign-off</div></div>
+    <div class="kpi"><div class="lbl">Not started</div><div class="val">${notStarted}</div><div class="delta">Blocked on dependency</div></div>
+    <div class="kpi"><div class="lbl">Overdue</div><div class="val">${overdue}</div><div class="delta ${overdue>0?'down':'up'}">${overdue>0?'Past planned date':'On schedule'}</div></div>
+  </div>
+
+  <div class="two-col" style="margin-top:16px;">
+    <div class="panel">
+      <h3>Stage timeline (planned dates)</h3>
+      <canvas id="chartApprovalsTimeline"></canvas>
+      <div class="trace">Source: <span class="mono">Approvals</span></div>
+    </div>
+    <div class="panel">
+      <h3>Status breakdown</h3>
+      <canvas id="chartApprovalsStatus"></canvas>
+      <div class="trace">Source: <span class="mono">Approvals</span></div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:16px;">
+    <h3>All stages</h3>
+    <table>
+      <thead><tr><th>Stage</th><th>Owner</th><th>Dependency</th><th>Planned</th><th>Actual</th><th>Status</th></tr></thead>
+      <tbody id="approvals-body">
+        ${rows.map(r=>`
+          <tr data-status="${r.Status}">
+            <td>${r.Stage||r.Approvals||'—'}</td><td>${r.Owner||'—'}</td><td>${r.Dependency||'—'}</td>
+            <td>${r['Planned Date']||'—'}</td><td>${r['Actual Date']||'—'}</td>
+            <td><span class="src-badge ${r.Status==='Done'?'src-Sales':r.Status==='Pending'?'src-CP':'src-Presales'}">${r.Status||'—'}</span></td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+    <div class="trace">Source: <span class="mono">Approvals</span></div>
+  </div>
+
+  <div class="section-title">Add a new stage</div>
+  <div class="section-sub">${DATA_API_URL ? 'Writes directly to the Approvals tab via the Apps Script endpoint.' : 'Connect DATA_API_URL to enable writing to the sheet.'}</div>
+  <div class="panel">
+    <div class="form-grid">
+      <div class="field"><label>Stage</label><input type="text" id="entry-appr-0"></div>
+      <div class="field"><label>Owner</label><input type="text" id="entry-appr-1"></div>
+      <div class="field"><label>Dependency</label><input type="text" id="entry-appr-2"></div>
+      <div class="field"><label>Planned Date</label><input type="date" id="entry-appr-3"></div>
+      <div class="field"><label>Actual Date</label><input type="date" id="entry-appr-4"></div>
+      <div class="field"><label>Status</label><input type="text" id="entry-appr-5" placeholder="Not started / Pending / Done"></div>
+    </div>
+    <button class="btn" onclick="submitApproval()">Add stage</button>
+    <div class="saved-msg" id="saved-msg-appr">Saved — synced to Approvals</div>
+  </div>
+  `;
+}
+
+async function submitApproval(){
+  const row = {
+    'Approvals': document.getElementById('entry-appr-0').value,
+    'Owner': document.getElementById('entry-appr-1').value,
+    'Dependency': document.getElementById('entry-appr-2').value,
+    'Planned Date': document.getElementById('entry-appr-3').value,
+    'Actual Date': document.getElementById('entry-appr-4').value,
+    'Status': document.getElementById('entry-appr-5').value
+  };
+  if(DATA_API_URL){
+    try{
+      await fetch(DATA_API_URL, { method:'POST', body: JSON.stringify({action:'appendRow', sheet:'Approvals', row}) });
+    }catch(err){ console.warn('Write failed:', err); }
+  }
+  document.getElementById('saved-msg-appr').style.display='block';
+  await refreshFromApi();
+}
+
+function applyApprovalsFilter(status){
+  document.querySelectorAll('#approvals-body tr').forEach(tr=>{
+    tr.style.display = (status==='all' || tr.dataset.status===status) ? '' : 'none';
+  });
+}
+
+function renderApprovalsChart(){
+  const rows = store.vv.approvalsRows;
+  const ctx1 = document.getElementById('chartApprovalsTimeline');
+  const ctx2 = document.getElementById('chartApprovalsStatus');
+  if(!ctx1||!ctx2) return;
+  if(charts.approvalsTimeline) charts.approvalsTimeline.destroy();
+  if(charts.approvalsStatus) charts.approvalsStatus.destroy();
+
+  const sorted = [...rows].sort((a,b)=> new Date(a['Planned Date']) - new Date(b['Planned Date']));
+  charts.approvalsTimeline = new Chart(ctx1, {
+    type:'bar',
+    data:{ labels: sorted.map(r=>`${r.Stage||r.Approvals}  (${r['Planned Date']||'—'})`), datasets:[{
+      label:'Status', data: sorted.map(()=>1),
+      backgroundColor: sorted.map(r=> r.Status==='Done' ? '#5c6e4a' : r.Status==='Pending' ? '#b5843a' : '#a8543a')
+    }]},
+    options:{ indexAxis:'y', responsive:true, plugins:{legend:{display:false}, tooltip:{enabled:false}},
+      scales:{ x:{ display:false, grid:{display:false} }, y:{ grid:{display:false}, ticks:{font:{size:10.5}} } } }
+  });
+
+  const statuses = ['Done','Pending','Not started'];
+  const counts = statuses.map(s=> rows.filter(r=>r.Status===s).length);
+  charts.approvalsStatus = new Chart(ctx2, {
+    type:'doughnut',
+    data:{ labels:statuses, datasets:[{data:counts, backgroundColor:['#5c6e4a','#b5843a','#a8543a']}] },
+    options:{ responsive:true, plugins:{legend:{position:'bottom', labels:{boxWidth:10,font:{size:11}}}} }
+  });
+}
+
+function tick(){
+  document.getElementById('lastUpdated').textContent = 'Live · updated ' + new Date().toLocaleTimeString();
+}
+setInterval(tick, 6000);
+if(DATA_API_URL) setInterval(refreshFromApi, 30000); // poll the sheet every 30s
+
+/* init */
+render();
+if(DATA_API_URL) refreshFromApi();
+</script>
+</body>
+</html>
