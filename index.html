@@ -342,7 +342,7 @@ function render(){
     if(d==='approvals'){ app.innerHTML = renderApprovalsDept(); }
     else if(d==='projects'){ app.innerHTML = renderProjectsDept(); }
     else if(d==='marketing'){ app.innerHTML = renderMarketingDept(); }
-    else if(d==='sales'){ app.innerHTML = renderSalesDept(); }
+    else if(d==='sales'){ app.innerHTML = renderSalesDept(); setTimeout(renderSalesCharts,0); }
     else if(d==='presales'){ app.innerHTML = renderNotWired('Pre-sales — Calling report', ['A tab (e.g. Calling_Report) with columns like Presales Name, Calls Made, Connected, Follow-ups, Date']); }
     else if(d==='cp'){ app.innerHTML = renderNotWired('CP', ['CPs onboarded (a roster tab)','Active CPs this period','CP-wise earning report (commission by CP)','Project-wise CP contribution']); }
     else if(d==='crm'){ app.innerHTML = renderNotWired('CRM', ['Collection targets','Amounts collected','Customer-wise account statement']); }
@@ -526,19 +526,110 @@ function renderSalesDept(){
 
   <div class="panel" style="margin-top:16px;">
     <h3>Site visit report</h3>
-    ${genericTable(s.siteVisits)}
+    <div class="kpi-row cols-4" style="margin-bottom:16px;">
+      <div class="kpi"><div class="lbl">Total visits</div><div class="val">${s.siteVisits.length}</div></div>
+      <div class="kpi"><div class="lbl">Done</div><div class="val">${s.siteVisits.filter(v=>statusClass(v.Status)==='status-done').length}</div></div>
+      <div class="kpi"><div class="lbl">Scheduled</div><div class="val">${s.siteVisits.filter(v=>statusClass(v.Status)==='status-pending').length}</div></div>
+      <div class="kpi"><div class="lbl">Top source</div><div class="val" style="font-size:16px;">${topKey(s.siteVisits,'Source')}</div></div>
+    </div>
+    <div class="two-col">
+      <div><canvas id="chartSiteVisitStatus"></canvas></div>
+      <div><canvas id="chartSiteVisitSource"></canvas></div>
+    </div>
+    <details style="margin-top:16px;"><summary style="cursor:pointer;font-size:13px;color:var(--slate);">View raw rows</summary>
+      <div style="margin-top:10px;">${genericTable(s.siteVisits)}</div>
+    </details>
     <div class="trace">Source: <span class="mono">SiteVisit${isSheetLive('SiteVisit')?' (live)':''}</span></div>
   </div>
 
   <div class="panel" style="margin-top:16px;">
     <h3>Leads report</h3>
-    <table>
-      <thead><tr><th>Name</th><th>Source</th><th>Stage</th><th>Updated</th></tr></thead>
-      <tbody>${s.leads.map(l=>`<tr><td>${l.name}</td><td><span class="src-badge src-${String(l.source).replace(' ','')}">${l.source}</span></td><td>${l.stage}</td><td>${l.updated}</td></tr>`).join('')}</tbody>
-    </table>
+    <div class="kpi-row cols-4" style="margin-bottom:16px;">
+      <div class="kpi"><div class="lbl">Total leads</div><div class="val">${s.leads.length}</div></div>
+      <div class="kpi"><div class="lbl">Booked</div><div class="val">${s.leads.filter(l=>/booked/i.test(l.stage)).length}</div></div>
+      <div class="kpi"><div class="lbl">In progress</div><div class="val">${s.leads.filter(l=>/progress|scheduled|visit/i.test(l.stage)).length}</div></div>
+      <div class="kpi"><div class="lbl">Top source</div><div class="val" style="font-size:16px;">${topKey(s.leads,'source')}</div></div>
+    </div>
+    <div class="two-col">
+      <div><canvas id="chartLeadsSource"></canvas></div>
+      <div><canvas id="chartLeadsStage"></canvas></div>
+    </div>
+    <details style="margin-top:16px;"><summary style="cursor:pointer;font-size:13px;color:var(--slate);">View raw rows</summary>
+      <div style="margin-top:10px;"><table>
+        <thead><tr><th>Name</th><th>Source</th><th>Stage</th><th>Updated</th></tr></thead>
+        <tbody>${s.leads.map(l=>`<tr><td>${l.name}</td><td><span class="src-badge src-${String(l.source).replace(' ','')}">${l.source}</span></td><td>${l.stage}</td><td>${l.updated}</td></tr>`).join('')}</tbody>
+      </table></div>
+    </details>
     <div class="trace">Source: <span class="mono">mock — no dedicated leads tab wired yet</span></div>
   </div>
   `;
+}
+
+function topKey(rows, field){
+  const counts = {};
+  (rows||[]).forEach(r=>{ const k=r[field]||'Other'; counts[k]=(counts[k]||0)+1; });
+  const keys = Object.keys(counts);
+  if(!keys.length) return '—';
+  return keys.reduce((a,b)=>counts[a]>=counts[b]?a:b);
+}
+
+function countBy(rows, field, normalize){
+  const counts = {};
+  (rows||[]).forEach(r=>{
+    let k = r[field]||'Other';
+    if(normalize) k = normalize(k);
+    counts[k]=(counts[k]||0)+1;
+  });
+  return counts;
+}
+
+function renderSalesCharts(){
+  const s = store.vv.sales;
+  const palette = ['#5c6e4a','#a8543a','#7a4f96','#3d6f8f','#b5843a','#6b6459'];
+
+  const svStatusCounts = countBy(s.siteVisits, 'Status', v=>String(v||'Unspecified'));
+  const ctxSVStatus = document.getElementById('chartSiteVisitStatus');
+  if(ctxSVStatus){
+    if(charts.svStatus) charts.svStatus.destroy();
+    charts.svStatus = new Chart(ctxSVStatus, {
+      type:'doughnut',
+      data:{ labels:Object.keys(svStatusCounts), datasets:[{data:Object.values(svStatusCounts), backgroundColor:palette}] },
+      options:{ responsive:true, plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:11}}}, title:{display:true,text:'By status',font:{size:12}}} }
+    });
+  }
+
+  const svSourceCounts = countBy(s.siteVisits, 'Source');
+  const ctxSVSource = document.getElementById('chartSiteVisitSource');
+  if(ctxSVSource){
+    if(charts.svSource) charts.svSource.destroy();
+    charts.svSource = new Chart(ctxSVSource, {
+      type:'bar',
+      data:{ labels:Object.keys(svSourceCounts), datasets:[{data:Object.values(svSourceCounts), backgroundColor:'#a8543a', borderRadius:2}] },
+      options:{ responsive:true, plugins:{legend:{display:false}, title:{display:true,text:'By source',font:{size:12}}}, scales:{ y:{beginAtZero:true, grid:{color:'#e6ded0'}}, x:{grid:{display:false}} } }
+    });
+  }
+
+  const leadSourceCounts = countBy(s.leads, 'source');
+  const ctxLeadSource = document.getElementById('chartLeadsSource');
+  if(ctxLeadSource){
+    if(charts.leadSource) charts.leadSource.destroy();
+    charts.leadSource = new Chart(ctxLeadSource, {
+      type:'doughnut',
+      data:{ labels:Object.keys(leadSourceCounts), datasets:[{data:Object.values(leadSourceCounts), backgroundColor:palette}] },
+      options:{ responsive:true, plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:11}}}, title:{display:true,text:'By source',font:{size:12}}} }
+    });
+  }
+
+  const leadStageCounts = countBy(s.leads, 'stage');
+  const ctxLeadStage = document.getElementById('chartLeadsStage');
+  if(ctxLeadStage){
+    if(charts.leadStage) charts.leadStage.destroy();
+    charts.leadStage = new Chart(ctxLeadStage, {
+      type:'bar',
+      data:{ labels:Object.keys(leadStageCounts), datasets:[{data:Object.values(leadStageCounts), backgroundColor:'#5c6e4a', borderRadius:2}] },
+      options:{ indexAxis:'y', responsive:true, plugins:{legend:{display:false}, title:{display:true,text:'By stage',font:{size:12}}}, scales:{ x:{beginAtZero:true, grid:{color:'#e6ded0'}}, y:{grid:{display:false}} } }
+    });
+  }
 }
 
 /* ---------- INCENTIVE (kept simple, still useful for payouts) ---------- */
