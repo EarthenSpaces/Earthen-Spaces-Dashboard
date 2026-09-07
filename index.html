@@ -181,14 +181,28 @@ const WIRED_SHEETS = [
    to whatever that project is actually spelled as in the sheet. */
 const CURRENT_PROJECT = 'Vista Villa';
 
+/* Normalizes a project name for comparison: trim, lowercase, and strip a
+   trailing 's' so "Vista Villa" and "Vista Villas" are treated as the same
+   project. This matters because different tabs spell it differently:
+   SiteVisit/Sales_Bookings use "Vista Villa" (no s), Lead_Report uses
+   "Vista Villas" (with s) almost everywhere. An exact-match filter against
+   a single CURRENT_PROJECT value would always zero out one tab or the
+   other depending on which spelling was chosen. */
+function normalizeProjectName_(v){
+  let s = String(v||'').trim().toLowerCase();
+  if(s.endsWith('s')) s = s.slice(0,-1);
+  return s;
+}
+
 /* Filters rows to CURRENT_PROJECT if the rows have a 'Project' column;
    rows without that column (e.g. tabs already scoped to one project via
-   a VV_ prefix) are returned unchanged. Comparison is trimmed+lowercased
-   so casing differences in the sheet don't cause silent drops. */
+   a VV_ prefix) are returned unchanged. Comparison ignores case and a
+   trailing 's' so the Villa/Villas spelling split doesn't drop rows. */
 function filterByProject(rows){
   if(!rows || !rows.length) return rows;
   if(rows[0].Project === undefined) return rows; // no Project column — nothing to filter
-  return rows.filter(r => String(r.Project||'').trim().toLowerCase() === CURRENT_PROJECT.trim().toLowerCase());
+  const target = normalizeProjectName_(CURRENT_PROJECT);
+  return rows.filter(r => normalizeProjectName_(r.Project) === target);
 }
 
 /* Refresh cadence: twice a day (every 12 hours), not every few seconds. */
