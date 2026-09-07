@@ -127,6 +127,14 @@ footer{max-width:1180px;margin:0 auto;padding:0 32px 60px;color:var(--slate);fon
 .back-link{font-size:13px;color:var(--slate);display:inline-block;margin-bottom:18px;}
 .back-link:hover{color:var(--clay);}
 .summary-line{font-size:13px;color:var(--slate);margin-bottom:14px;}
+.table-scroll{overflow-x:auto;}
+.table-scroll table{white-space:nowrap;}
+.table-scroll td, .table-scroll th{font-size:12px;padding:8px 9px;}
+.seg{display:inline-flex;gap:4px;background:var(--limestone-dim);padding:3px;border-radius:4px;}
+.seg button{border:none;background:transparent;font-family:'Inter';font-size:12px;padding:5px 12px;border-radius:3px;cursor:pointer;color:var(--slate);}
+.seg button.active{background:var(--card);color:var(--soil-900);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08);}
+.panel-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
+.panel-head h3{margin:0;}
 </style>
 </head>
 <body>
@@ -287,11 +295,11 @@ let store = {
         {'Lead Id':'LD-2305','Site Visit Date':'2024-08-16', Project:'Vista Villas', Status:'Scheduled', Source:'CP'},
       ],
       leads: [
-        {name:'R. Sundaram', source:'Marketing', stage:'Site visit done', updated:'2h ago'},
-        {name:'K. Priya', source:'CP', stage:'Booking in progress', updated:'4h ago'},
-        {name:'A. Fernandez', source:'Sales', stage:'Prospect', updated:'1d ago'},
-        {name:'M. Iqbal', source:'Pre-sales', stage:'Site visit scheduled', updated:'1d ago'},
-        {name:'S. Lakshmi', source:'CP', stage:'Booked', updated:'2d ago'},
+        {name:'R. Sundaram', source:'Marketing', stage:'Site visit done', date:'2024-08-14', updated:'2h ago'},
+        {name:'K. Priya', source:'CP', stage:'Booking in progress', date:'2024-08-15', updated:'4h ago'},
+        {name:'A. Fernandez', source:'Sales', stage:'Prospect', date:'2024-08-16', updated:'1d ago'},
+        {name:'M. Iqbal', source:'Pre-sales', stage:'Site visit scheduled', date:'2024-08-17', updated:'1d ago'},
+        {name:'S. Lakshmi', source:'CP', stage:'Booked', date:'2024-08-18', updated:'2d ago'},
       ]
     }
   }
@@ -505,6 +513,7 @@ function renderMarketingDept(){
 /* ---------- SALES (Inventory, Bookings, Site visit report, Leads report) ---------- */
 function renderSalesDept(){
   const s = store.vv.sales;
+  const bookedValue = sum(s.bookingsRows, 'Total Value');
   return `
   <a class="back-link" href="#project/vista-villas">← Vista Villas</a>
   <div class="hero-row"><div><h1>Sales</h1></div></div>
@@ -519,31 +528,41 @@ function renderSalesDept(){
   </div>
 
   <div class="panel" style="margin-top:16px;">
-    <h3>Bookings</h3>
-    ${genericTable(s.bookingsRows)}
+    <div class="panel-head"><h3>Bookings</h3></div>
+    <div class="kpi-row cols-4" style="margin-bottom:16px;">
+      <div class="kpi"><div class="lbl">Total bookings</div><div class="val">${s.bookingsRows.length}</div></div>
+      <div class="kpi"><div class="lbl">Total value</div><div class="val">${bookedValue?`₹${(bookedValue/10000000).toFixed(2)} Cr`:'—'}</div></div>
+      <div class="kpi"><div class="lbl">This month</div><div class="val">${countInCurrentPeriod(s.bookingsRows,'Booking Date','month')}</div></div>
+      <div class="kpi"><div class="lbl">Top source</div><div class="val" style="font-size:16px;">${topKey(s.bookingsRows,'Source')}</div></div>
+    </div>
+    ${trendBlock('bookingsTrend', s.bookingsRows, 'Booking Date')}
+    <details style="margin-top:16px;"><summary style="cursor:pointer;font-size:13px;color:var(--slate);">View raw rows</summary>
+      <div class="table-scroll" style="margin-top:10px;">${genericTable(formatRowsForDisplay(s.bookingsRows, ['Booking Date']), ['Customer Name','Booking Date','Unit No','Total Value','Source','Sales Name'])}</div>
+    </details>
     <div class="trace">Source: <span class="mono">Sales_Bookings${isSheetLive('Sales_Bookings')?' (live)':''}</span></div>
   </div>
 
   <div class="panel" style="margin-top:16px;">
-    <h3>Site visit report</h3>
+    <div class="panel-head"><h3>Site visit report</h3></div>
     <div class="kpi-row cols-4" style="margin-bottom:16px;">
       <div class="kpi"><div class="lbl">Total visits</div><div class="val">${s.siteVisits.length}</div></div>
       <div class="kpi"><div class="lbl">Done</div><div class="val">${s.siteVisits.filter(v=>statusClass(v.Status)==='status-done').length}</div></div>
-      <div class="kpi"><div class="lbl">Scheduled</div><div class="val">${s.siteVisits.filter(v=>statusClass(v.Status)==='status-pending').length}</div></div>
+      <div class="kpi"><div class="lbl">This month</div><div class="val">${countInCurrentPeriod(s.siteVisits,'Site Visit Date','month')}</div></div>
       <div class="kpi"><div class="lbl">Top source</div><div class="val" style="font-size:16px;">${topKey(s.siteVisits,'Source')}</div></div>
     </div>
     <div class="two-col">
       <div><canvas id="chartSiteVisitStatus"></canvas></div>
       <div><canvas id="chartSiteVisitSource"></canvas></div>
     </div>
+    ${trendBlock('siteVisitTrend', s.siteVisits, 'Site Visit Date')}
     <details style="margin-top:16px;"><summary style="cursor:pointer;font-size:13px;color:var(--slate);">View raw rows</summary>
-      <div style="margin-top:10px;">${genericTable(s.siteVisits)}</div>
+      <div class="table-scroll" style="margin-top:10px;">${genericTable(formatRowsForDisplay(s.siteVisits, ['Site Visit Date']))}</div>
     </details>
     <div class="trace">Source: <span class="mono">SiteVisit${isSheetLive('SiteVisit')?' (live)':''}</span></div>
   </div>
 
   <div class="panel" style="margin-top:16px;">
-    <h3>Leads report</h3>
+    <div class="panel-head"><h3>Leads report</h3></div>
     <div class="kpi-row cols-4" style="margin-bottom:16px;">
       <div class="kpi"><div class="lbl">Total leads</div><div class="val">${s.leads.length}</div></div>
       <div class="kpi"><div class="lbl">Booked</div><div class="val">${s.leads.filter(l=>/booked/i.test(l.stage)).length}</div></div>
@@ -554,10 +573,11 @@ function renderSalesDept(){
       <div><canvas id="chartLeadsSource"></canvas></div>
       <div><canvas id="chartLeadsStage"></canvas></div>
     </div>
+    ${trendBlock('leadsTrend', s.leads, 'date')}
     <details style="margin-top:16px;"><summary style="cursor:pointer;font-size:13px;color:var(--slate);">View raw rows</summary>
-      <div style="margin-top:10px;"><table>
-        <thead><tr><th>Name</th><th>Source</th><th>Stage</th><th>Updated</th></tr></thead>
-        <tbody>${s.leads.map(l=>`<tr><td>${l.name}</td><td><span class="src-badge src-${String(l.source).replace(' ','')}">${l.source}</span></td><td>${l.stage}</td><td>${l.updated}</td></tr>`).join('')}</tbody>
+      <div class="table-scroll" style="margin-top:10px;"><table>
+        <thead><tr><th>Name</th><th>Source</th><th>Stage</th><th>Date</th></tr></thead>
+        <tbody>${s.leads.map(l=>`<tr><td>${l.name}</td><td><span class="src-badge src-${String(l.source).replace(' ','')}">${l.source}</span></td><td>${l.stage}</td><td>${formatDateShort(l.date)}</td></tr>`).join('')}</tbody>
       </table></div>
     </details>
     <div class="trace">Source: <span class="mono">mock — no dedicated leads tab wired yet</span></div>
@@ -565,6 +585,44 @@ function renderSalesDept(){
   `;
 }
 
+/* ---------- date / trend helpers (shared) ---------- */
+function parseDate(v){ if(!v) return null; const d = new Date(v); return isNaN(d) ? null : d; }
+function formatDateShort(v){ const d = parseDate(v); return d ? d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : (v||'—'); }
+function formatRowsForDisplay(rows, dateFields){
+  return (rows||[]).map(r=>{
+    const copy = {...r};
+    (dateFields||[]).forEach(f=>{ if(copy[f]!==undefined) copy[f] = formatDateShort(copy[f]); });
+    return copy;
+  });
+}
+function isoWeekLabel(d){
+  const monday = new Date(d);
+  const day = (monday.getDay()+6)%7; // 0=Mon
+  monday.setDate(monday.getDate()-day);
+  return monday.toLocaleDateString('en-IN',{day:'2-digit',month:'short'});
+}
+function groupByPeriod(rows, dateField, mode){
+  const buckets = {};
+  (rows||[]).forEach(r=>{
+    const d = parseDate(r[dateField]);
+    if(!d) return;
+    const key = mode==='week' ? isoWeekLabel(d) : d.toLocaleDateString('en-IN',{month:'short',year:'2-digit'});
+    const sortKey = mode==='week' ? (function(){const m=new Date(d);const day=(m.getDay()+6)%7;m.setDate(m.getDate()-day);return m.getTime();})() : new Date(d.getFullYear(), d.getMonth(),1).getTime();
+    if(!buckets[key]) buckets[key] = {count:0, sortKey};
+    buckets[key].count++;
+  });
+  const entries = Object.entries(buckets).sort((a,b)=>a[1].sortKey-b[1].sortKey);
+  return { labels: entries.map(e=>e[0]), values: entries.map(e=>e[1].count) };
+}
+function countInCurrentPeriod(rows, dateField, mode){
+  const now = new Date();
+  return (rows||[]).filter(r=>{
+    const d = parseDate(r[dateField]);
+    if(!d) return false;
+    if(mode==='month') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+    return false;
+  }).length;
+}
 function topKey(rows, field){
   const counts = {};
   (rows||[]).forEach(r=>{ const k=r[field]||'Other'; counts[k]=(counts[k]||0)+1; });
@@ -572,7 +630,6 @@ function topKey(rows, field){
   if(!keys.length) return '—';
   return keys.reduce((a,b)=>counts[a]>=counts[b]?a:b);
 }
-
 function countBy(rows, field, normalize){
   const counts = {};
   (rows||[]).forEach(r=>{
@@ -581,6 +638,45 @@ function countBy(rows, field, normalize){
     counts[k]=(counts[k]||0)+1;
   });
   return counts;
+}
+
+/* Renders a trend panel with Month/Week toggle buttons + a canvas. State kept in trendState. */
+const trendState = {};
+function trendBlock(key, rows, dateField){
+  if(!trendState[key]) trendState[key] = 'month';
+  trendState[key+'__rows'] = rows;
+  trendState[key+'__field'] = dateField;
+  const mode = trendState[key];
+  return `
+  <div style="margin-top:16px;">
+    <div class="panel-head">
+      <h3 style="font-size:13px;color:var(--slate);text-transform:uppercase;letter-spacing:.03em;">Trend</h3>
+      <div class="seg">
+        <button class="${mode==='month'?'active':''}" onclick="setTrendMode('${key}','month')">Month</button>
+        <button class="${mode==='week'?'active':''}" onclick="setTrendMode('${key}','week')">Week</button>
+      </div>
+    </div>
+    <canvas id="chart_${key}"></canvas>
+  </div>`;
+}
+function setTrendMode(key, mode){
+  trendState[key] = mode;
+  render(); // router re-renders the page and its charts, keeping button state in sync
+}
+function renderTrendChart(key, color){
+  const ctx = document.getElementById('chart_'+key);
+  if(!ctx) return;
+  const rows = trendState[key+'__rows'];
+  const field = trendState[key+'__field'];
+  const mode = trendState[key] || 'month';
+  const g = groupByPeriod(rows, field, mode);
+  if(charts[key]) charts[key].destroy();
+  if(!g.labels.length){ ctx.getContext('2d').font='12px Inter'; return; }
+  charts[key] = new Chart(ctx, {
+    type:'bar',
+    data:{ labels:g.labels, datasets:[{data:g.values, backgroundColor:color, borderRadius:2}] },
+    options:{ responsive:true, plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true, grid:{color:'#e6ded0'}}, x:{grid:{display:false}} } }
+  });
 }
 
 function renderSalesCharts(){
@@ -630,6 +726,10 @@ function renderSalesCharts(){
       options:{ indexAxis:'y', responsive:true, plugins:{legend:{display:false}, title:{display:true,text:'By stage',font:{size:12}}}, scales:{ x:{beginAtZero:true, grid:{color:'#e6ded0'}}, y:{grid:{display:false}} } }
     });
   }
+
+  renderTrendChart('bookingsTrend', '#a8543a');
+  renderTrendChart('siteVisitTrend', '#5c6e4a');
+  renderTrendChart('leadsTrend', '#7a4f96');
 }
 
 /* ---------- INCENTIVE (kept simple, still useful for payouts) ---------- */
