@@ -169,6 +169,23 @@ const WIRED_SHEETS = [
   'Sales_Bookings','VV_Inventory','Incentive_Targets','SiteVisit','Lead_Report'
 ];
 
+/* ---------- PROJECT SCOPE ----------
+   Several tabs (Lead_Report, Sales_Bookings, SiteVisit, and any future
+   shared tab) hold rows for ALL projects, distinguished by a 'Project'
+   column ('Vista Villas', 'Vista Garden', 'Old Madras', 'N/A', ...).
+   This dashboard shows one project at a time — set which one here. When
+   Old Madras or Nagaram get their own dashboard, just change this constant. */
+const CURRENT_PROJECT = 'Vista Villas';
+
+/* Filters rows to CURRENT_PROJECT if the rows have a 'Project' column;
+   rows without that column (e.g. tabs already scoped to one project via
+   a VV_ prefix) are returned unchanged. */
+function filterByProject(rows){
+  if(!rows || !rows.length) return rows;
+  if(rows[0].Project === undefined) return rows; // no Project column — nothing to filter
+  return rows.filter(r => String(r.Project||'').trim().toLowerCase() === CURRENT_PROJECT.toLowerCase());
+}
+
 /* Refresh cadence: twice a day (every 12 hours), not every few seconds. */
 const REFRESH_INTERVAL_MS = 12 * 60 * 60 * 1000;
 
@@ -209,7 +226,7 @@ function mapLiveDataToStore(data){
   if(S.VV_Project_SiteStatus) store.vv.projects.siteStatus = S.VV_Project_SiteStatus;
   if(S.VV_Payment_Tracker) store.vv.projects.paymentTracker = S.VV_Payment_Tracker;
 
-  if(S.Sales_Bookings) store.vv.sales.bookingsRows = S.Sales_Bookings;
+  if(S.Sales_Bookings) store.vv.sales.bookingsRows = filterByProject(S.Sales_Bookings);
   if(S.VV_Inventory && S.VV_Inventory.length){
     const byType = {};
     S.VV_Inventory.forEach(u => {
@@ -221,11 +238,11 @@ function mapLiveDataToStore(data){
     });
     store.vv.sales.inventory = Object.values(byType);
   }
-  if(S.SiteVisit) store.vv.sales.siteVisits = S.SiteVisit;
+  if(S.SiteVisit) store.vv.sales.siteVisits = filterByProject(S.SiteVisit);
 
   if(S.Lead_Report && S.Lead_Report.length){
-    // Exact columns confirmed from the Lead_Report tab: Lead Id, Date, Project, Lead Stage, Campaign, Source, Sub-Source, Lead Assigned to, Team
-    store.vv.sales.leads = S.Lead_Report.map(r => ({
+    const leadRows = filterByProject(S.Lead_Report);
+    store.vv.sales.leads = leadRows.map(r => ({
       name: r['Lead Id'] || '—',
       source: r['Source'] || 'Other',
       stage: r['Lead Stage'] || '—',
