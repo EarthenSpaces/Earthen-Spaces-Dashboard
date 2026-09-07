@@ -172,18 +172,23 @@ const WIRED_SHEETS = [
 /* ---------- PROJECT SCOPE ----------
    Several tabs (Lead_Report, Sales_Bookings, SiteVisit, and any future
    shared tab) hold rows for ALL projects, distinguished by a 'Project'
-   column ('Vista Villas', 'Vista Garden', 'Old Madras', 'N/A', ...).
-   This dashboard shows one project at a time — set which one here. When
-   Old Madras or Nagaram get their own dashboard, just change this constant. */
-const CURRENT_PROJECT = 'Vista Villas';
+   column. IMPORTANT: the actual sheet values are "Vista Villa" (no "s"),
+   with inconsistent casing ("Vista Villa" / "Vista villa" / "vista villa").
+   This constant must match the sheet's spelling, not the project's display
+   name — a mismatch here (previously "Vista Villas") silently filters
+   every row out of Sales/SiteVisit/Leads, which is why those pages showed
+   all zeros. When Old Madras or Nagaram get their own dashboard, set this
+   to whatever that project is actually spelled as in the sheet. */
+const CURRENT_PROJECT = 'Vista Villa';
 
 /* Filters rows to CURRENT_PROJECT if the rows have a 'Project' column;
    rows without that column (e.g. tabs already scoped to one project via
-   a VV_ prefix) are returned unchanged. */
+   a VV_ prefix) are returned unchanged. Comparison is trimmed+lowercased
+   so casing differences in the sheet don't cause silent drops. */
 function filterByProject(rows){
   if(!rows || !rows.length) return rows;
   if(rows[0].Project === undefined) return rows; // no Project column — nothing to filter
-  return rows.filter(r => String(r.Project||'').trim().toLowerCase() === CURRENT_PROJECT.toLowerCase());
+  return rows.filter(r => String(r.Project||'').trim().toLowerCase() === CURRENT_PROJECT.trim().toLowerCase());
 }
 
 /* Refresh cadence: twice a day (every 12 hours), not every few seconds. */
@@ -212,6 +217,16 @@ function statusClass(status){
   if(s==='done'||s==='completed') return 'status-done';
   if(s==='pending'||s==='scheduled') return 'status-pending';
   return 'status-notstarted';
+}
+
+/* SiteVisit-specific status normalizer. Real values in the sheet are:
+   Lost, Cancle (sic — a typo in the source data, not "Cancelled"), Booked,
+   Cold, Warm, Hot. There is no Done/Scheduled status for this tab. */
+function siteVisitStatusClass(status){
+  const s = String(status||'').trim().toLowerCase();
+  if(s==='booked') return 'status-done';
+  if(s==='hot'||s==='warm') return 'status-pending';
+  return 'status-notstarted'; // lost, cancle, cold, unspecified
 }
 
 /* ---------- LIVE DATA MAPPING ---------- */
@@ -325,8 +340,8 @@ let store = {
         {'Customer Name':'K. Priya','Booking Date':'2024-08-16',Project:'Vista Villas','Unit No':'P-233','Total Value':9500000,Source:'CP'},
       ],
       siteVisits: [
-        {'Lead Id':'LD-2291','Site Visit Date':'2024-08-14', Project:'Vista Villas', Status:'Done', Source:'Marketing'},
-        {'Lead Id':'LD-2305','Site Visit Date':'2024-08-16', Project:'Vista Villas', Status:'Scheduled', Source:'CP'},
+        {'Lead Id':'LD-2291','Site Visit Date':'2024-08-14', Project:'Vista Villas', Status:'Booked', Source:'Marketing'},
+        {'Lead Id':'LD-2305','Site Visit Date':'2024-08-16', Project:'Vista Villas', Status:'Warm', Source:'CP'},
       ],
       leadsLive: false,
       leads: [
@@ -549,6 +564,8 @@ function renderMarketingDept(){
 function renderSalesDept(){
   const s = store.vv.sales;
   const bookedValue = sum(s.bookingsRows, 'Total Value');
+  const svBookedCount = s.siteVisits.filter(v=>String(v.Status||'').trim().toLowerCase()==='booked').length;
+  const svHotCount = s.siteVisits.filter(v=>String(v.Status||'').trim().toLowerCase()==='hot').length;
   return `
   <a class="back-link" href="#project/vista-villas">← Vista Villas</a>
   <div class="hero-row"><div><h1>Sales</h1></div></div>
@@ -581,8 +598,8 @@ function renderSalesDept(){
     <div class="panel-head"><h3>Site visit report</h3></div>
     <div class="kpi-row cols-4" style="margin-bottom:16px;">
       <div class="kpi"><div class="lbl">Total visits</div><div class="val">${s.siteVisits.length}</div></div>
-      <div class="kpi"><div class="lbl">Done</div><div class="val">${s.siteVisits.filter(v=>statusClass(v.Status)==='status-done').length}</div></div>
-      <div class="kpi"><div class="lbl">This month</div><div class="val">${countInCurrentPeriod(s.siteVisits,'Site Visit Date','month')}</div></div>
+      <div class="kpi"><div class="lbl">Booked</div><div class="val">${svBookedCount}</div></div>
+      <div class="kpi"><div class="lbl">Hot</div><div class="val">${svHotCount}</div></div>
       <div class="kpi"><div class="lbl">Top source</div><div class="val" style="font-size:16px;">${topKey(s.siteVisits,'Source')}</div></div>
     </div>
     <div class="two-col">
@@ -626,7 +643,12 @@ function renderSalesDept(){
 function parseDate(v){
   if(!v) return null;
   if(typeof v === 'string'){
-    const m = v.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/); // DD-MM-YYYY as used in Lead_Report
+    // DD-MM-YYYY, e.g. Lead_Report
+    let m = v.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+    if(m) return new Date(Number(m[3]), Number(m[2])-1, Number(m[1]));
+    // DD/MM/YYYY, e.g. SiteVisit — must be parsed manually since new Date()
+    // on slash-separated dates is ambiguous (assumes US MM/DD/YYYY order).
+    m = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
     if(m) return new Date(Number(m[3]), Number(m[2])-1, Number(m[1]));
   }
   const d = new Date(v);
@@ -728,7 +750,8 @@ function renderSalesCharts(){
   const s = store.vv.sales;
   const palette = ['#5c6e4a','#a8543a','#7a4f96','#3d6f8f','#b5843a','#6b6459'];
 
-  const svStatusCounts = countBy(s.siteVisits, 'Status', v=>String(v||'Unspecified'));
+  // Real SiteVisit statuses: Lost, Cancle (sic), Booked, Cold, Warm, Hot
+  const svStatusCounts = countBy(s.siteVisits, 'Status', v=>String(v||'Unspecified').trim());
   const ctxSVStatus = document.getElementById('chartSiteVisitStatus');
   if(ctxSVStatus){
     if(charts.svStatus) charts.svStatus.destroy();
