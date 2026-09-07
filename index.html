@@ -166,7 +166,7 @@ const DATA_API_URL = 'https://script.google.com/macros/s/AKfycbwL0Rp36wPB54cHNGl
 const WIRED_SHEETS = [
   'Approvals','VV_Projects_Budget','VV_Projects_Workorder','VV_Project_SiteStatus',
   'VV_Marketing_Targets','VV_Marketing_Vendor','VV_Marketing_GTMPlan',
-  'Sales_Bookings','VV_Inventory','Incentive_Targets','SiteVisit'
+  'Sales_Bookings','VV_Inventory','Incentive_Targets','SiteVisit','Lead_Report'
 ];
 
 /* Refresh cadence: twice a day (every 12 hours), not every few seconds. */
@@ -222,6 +222,23 @@ function mapLiveDataToStore(data){
     store.vv.sales.inventory = Object.values(byType);
   }
   if(S.SiteVisit) store.vv.sales.siteVisits = S.SiteVisit;
+
+  if(S.Lead_Report && S.Lead_Report.length){
+    // Exact columns confirmed from the Lead_Report tab: Lead Id, Date, Project, Lead Stage, Campaign, Source, Sub-Source, Lead Assigned to, Team
+    store.vv.sales.leads = S.Lead_Report.map(r => ({
+      name: r['Lead Id'] || '—',
+      source: r['Source'] || 'Other',
+      stage: r['Lead Stage'] || '—',
+      date: r['Date'] || null,
+      project: r['Project'] || '',
+      campaign: r['Campaign'] || '',
+      subsource: r['Sub-Source'] || '',
+      assignedTo: r['Lead Assigned to'] || '',
+      team: r['Team'] || '',
+      raw: r
+    }));
+    store.vv.sales.leadsLive = true;
+  }
 
   if(S.VV_Marketing_Vendor) store.vv.marketing.vendor = S.VV_Marketing_Vendor;
   if(S.VV_Marketing_GTMPlan) store.vv.marketing.gtm = S.VV_Marketing_GTMPlan;
@@ -294,6 +311,7 @@ let store = {
         {'Lead Id':'LD-2291','Site Visit Date':'2024-08-14', Project:'Vista Villas', Status:'Done', Source:'Marketing'},
         {'Lead Id':'LD-2305','Site Visit Date':'2024-08-16', Project:'Vista Villas', Status:'Scheduled', Source:'CP'},
       ],
+      leadsLive: false,
       leads: [
         {name:'R. Sundaram', source:'Marketing', stage:'Site visit done', date:'2024-08-14', updated:'2h ago'},
         {name:'K. Priya', source:'CP', stage:'Booking in progress', date:'2024-08-15', updated:'4h ago'},
@@ -565,8 +583,8 @@ function renderSalesDept(){
     <div class="panel-head"><h3>Leads report</h3></div>
     <div class="kpi-row cols-4" style="margin-bottom:16px;">
       <div class="kpi"><div class="lbl">Total leads</div><div class="val">${s.leads.length}</div></div>
-      <div class="kpi"><div class="lbl">Booked</div><div class="val">${s.leads.filter(l=>/booked/i.test(l.stage)).length}</div></div>
-      <div class="kpi"><div class="lbl">In progress</div><div class="val">${s.leads.filter(l=>/progress|scheduled|visit/i.test(l.stage)).length}</div></div>
+      <div class="kpi"><div class="lbl">Engaged</div><div class="val">${s.leads.filter(l=>/engaged|prospect|initial/i.test(l.stage)).length}</div></div>
+      <div class="kpi"><div class="lbl">Lost / Junk</div><div class="val">${s.leads.filter(l=>/lost|junk/i.test(l.stage)).length}</div></div>
       <div class="kpi"><div class="lbl">Top source</div><div class="val" style="font-size:16px;">${topKey(s.leads,'source')}</div></div>
     </div>
     <div class="two-col">
@@ -575,18 +593,28 @@ function renderSalesDept(){
     </div>
     ${trendBlock('leadsTrend', s.leads, 'date')}
     <details style="margin-top:16px;"><summary style="cursor:pointer;font-size:13px;color:var(--slate);">View raw rows</summary>
-      <div class="table-scroll" style="margin-top:10px;"><table>
-        <thead><tr><th>Name</th><th>Source</th><th>Stage</th><th>Date</th></tr></thead>
-        <tbody>${s.leads.map(l=>`<tr><td>${l.name}</td><td><span class="src-badge src-${String(l.source).replace(' ','')}">${l.source}</span></td><td>${l.stage}</td><td>${formatDateShort(l.date)}</td></tr>`).join('')}</tbody>
-      </table></div>
+      <div class="table-scroll" style="margin-top:10px;">${
+        s.leadsLive
+          ? genericTable(s.leads.map(l=>l.raw))
+          : `<table><thead><tr><th>Name</th><th>Source</th><th>Stage</th><th>Date</th></tr></thead>
+             <tbody>${s.leads.map(l=>`<tr><td>${l.name}</td><td><span class="src-badge src-${String(l.source).replace(' ','')}">${l.source}</span></td><td>${l.stage}</td><td>${formatDateShort(l.date)}</td></tr>`).join('')}</tbody></table>`
+      }</div>
     </details>
-    <div class="trace">Source: <span class="mono">mock — no dedicated leads tab wired yet</span></div>
+    <div class="trace">Source: <span class="mono">Lead_Report${isSheetLive('Lead_Report')?' (live)':' — mock, tab not returning rows yet'}</span></div>
   </div>
   `;
 }
 
 /* ---------- date / trend helpers (shared) ---------- */
-function parseDate(v){ if(!v) return null; const d = new Date(v); return isNaN(d) ? null : d; }
+function parseDate(v){
+  if(!v) return null;
+  if(typeof v === 'string'){
+    const m = v.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/); // DD-MM-YYYY as used in Lead_Report
+    if(m) return new Date(Number(m[3]), Number(m[2])-1, Number(m[1]));
+  }
+  const d = new Date(v);
+  return isNaN(d) ? null : d;
+}
 function formatDateShort(v){ const d = parseDate(v); return d ? d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : (v||'—'); }
 function formatRowsForDisplay(rows, dateFields){
   return (rows||[]).map(r=>{
