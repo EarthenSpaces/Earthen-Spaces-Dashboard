@@ -3,870 +3,3488 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Earthen Spaces — Ops Dashboard</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<title>Earthen Spaces — Management Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
 :root{
-  --soil-900:#2b2420;
-  --soil-700:#4a3f36;
-  --limestone:#f2ede3;
-  --limestone-dim:#e6ded0;
-  --clay:#a8543a;
-  --moss:#5c6e4a;
-  --moss-soft:#eef1e8;
-  --clay-soft:#f7e9e2;
-  --slate:#6b6459;
-  --line:#d9d0c0;
-  --card:#fbf9f4;
-  --amber:#b5843a;
+  --ink:#17372f;
+  --ink2:#2d604f;
+  --green:#3f8067;
+  --paper:#f5f3ec;
+  --card:#ffffff;
+  --line:#e1dfd6;
+  --muted:#6d776f;
+  --gold:#b48b4a;
+  --red:#b7584c;
+  --blue:#5e839d;
+  --shadow:0 6px 22px rgba(23,55,47,.07);
 }
-*{box-sizing:border-box;}
-body{margin:0;background:var(--limestone);color:var(--soil-900);font-family:'Inter',sans-serif;}
-h1,h2,h3,.display{font-family:'Fraunces',serif;}
-.mono{font-family:'IBM Plex Mono',monospace;}
-a{color:inherit;text-decoration:none;}
 
-header.top{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:14px 32px;border-bottom:1px solid var(--line);
-  background:var(--limestone);position:sticky;top:0;z-index:10;
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font:14px Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 }
-.brand{display:flex;align-items:center;gap:10px;cursor:pointer;}
-.brand img.logo{height:32px;width:auto;display:block;}
-.brand .mark{width:10px;height:10px;background:var(--clay);border-radius:2px;display:inline-block;}
-.brand span{font-size:19px;font-weight:600;}
-.crumbs{font-size:13px;color:var(--slate);}
-.crumbs a:hover{color:var(--clay);}
-.live-pill{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--slate);}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--moss);}
 
-main{max-width:1180px;margin:0 auto;padding:36px 32px 80px;}
+button,select,input{font:inherit}
+button{cursor:pointer}
 
-.hero-row{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:28px;gap:24px;flex-wrap:wrap;}
-.hero-row h1{font-size:34px;font-weight:500;margin:0;}
-.hero-row p{margin:6px 0 0;color:var(--slate);font-size:15px;max-width:520px;}
-.rollup{display:flex;gap:28px;flex-wrap:wrap;}
-.rollup .stat{text-align:right;}
-.rollup .stat .num{font-family:'Fraunces',serif;font-size:26px;font-weight:500;}
-.rollup .stat .lbl{font-size:11.5px;color:var(--slate);text-transform:uppercase;letter-spacing:.04em;}
-
-.grid-projects{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;margin-top:22px;}
-.pcard{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:20px;position:relative;transition:border-color .15s;}
-.pcard.active{cursor:pointer;}
-.pcard.active:hover{border-color:var(--clay);}
-.pcard .loc{font-size:12px;color:var(--slate);margin-bottom:2px;}
-.pcard h3{font-size:19px;margin:0;font-weight:500;}
-.pcard.soon{opacity:.5;}
-.pcard.soon::after{content:"Not yet connected";position:absolute;top:20px;right:20px;font-size:10.5px;color:var(--slate);}
-
-.dept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-top:24px;}
-.dtile{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:18px 20px;}
-.dtile.active{cursor:pointer;}
-.dtile.active:hover{border-color:var(--clay);}
-.dtile .name{font-size:14.5px;font-weight:600;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
-.dtile .headline{font-family:'Fraunces',serif;font-size:24px;font-weight:500;}
-.dtile .sub{font-size:12px;color:var(--slate);margin-top:2px;}
-.tag{font-size:10px;padding:2px 7px;border-radius:20px;background:var(--moss-soft);color:var(--moss);}
-.tag.soon{background:var(--limestone-dim);color:var(--slate);}
-
-.finrow{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:24px;}
-.fincard{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:16px;}
-.fincard .lbl{font-size:11px;color:var(--slate);text-transform:uppercase;letter-spacing:.03em;}
-.fincard .val{font-family:'Fraunces',serif;font-size:20px;margin-top:6px;}
-
-.section-title{font-size:20px;font-weight:500;margin:40px 0 4px;}
-.section-sub{font-size:13px;color:var(--slate);margin-bottom:16px;}
-.filters{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
-.filters select, .filters input{
-  font-family:'Inter';font-size:13px;padding:7px 10px;border:1px solid var(--line);
-  background:var(--card);border-radius:3px;color:var(--soil-900);
+.app{
+  min-height:100vh;
+  display:flex;
 }
-.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
-.kpi-row.cols-4{grid-template-columns:repeat(4,1fr);}
-.kpi{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:16px;}
-.kpi .lbl{font-size:11.5px;color:var(--slate);}
-.kpi .val{font-family:'Fraunces',serif;font-size:24px;margin-top:6px;font-weight:500;}
-.kpi .delta{font-size:11.5px;margin-top:4px;}
-.delta.up{color:var(--moss);} .delta.down{color:var(--clay);}
 
-.panel{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:20px;margin-top:16px;}
-.panel h3{margin:0 0 14px;font-size:15px;font-weight:600;}
-.two-col{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;}
-canvas{max-height:260px;}
+.sidebar{
+  width:250px;
+  position:fixed;
+  left:0;
+  top:0;
+  bottom:0;
+  background:var(--ink);
+  color:#fff;
+  padding:22px 15px;
+  overflow:auto;
+}
 
-table{width:100%;border-collapse:collapse;font-size:13px;}
-th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--slate);padding:8px 10px;border-bottom:1px solid var(--line);}
-td{padding:9px 10px;border-bottom:1px solid var(--limestone-dim);}
-tr:last-child td{border-bottom:none;}
-.src-badge{font-size:11px;padding:2px 8px;border-radius:20px;}
-.src-Marketing{background:#eef1e8;color:var(--moss);}
-.src-CP{background:#f7e9e2;color:var(--clay);}
-.src-Presales{background:#f0e8f5;color:#7a4f96;}
-.src-Sales{background:#eaf1f6;color:#3d6f8f;}
-.status-done{background:#eef1e8;color:var(--moss);}
-.status-pending{background:#faf1e0;color:var(--amber);}
-.status-notstarted{background:#f7e9e2;color:var(--clay);}
+.brand{
+  padding:5px 12px 22px;
+  border-bottom:1px solid rgba(255,255,255,.12);
+  margin-bottom:14px;
+}
 
-.trace{font-size:11px;color:var(--slate);margin-top:8px;}
-.trace .mono{color:var(--slate);}
+.brand h1{
+  font:500 27px Georgia,serif;
+  line-height:.95;
+  margin:0;
+}
 
-.form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
-.field label{display:block;font-size:12px;color:var(--slate);margin-bottom:5px;}
-.field input{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:3px;font-size:13px;background:#fff;}
-.btn{background:var(--soil-900);color:var(--limestone);border:none;padding:10px 18px;border-radius:3px;font-size:13px;cursor:pointer;margin-top:16px;}
-.btn:hover{background:var(--clay);}
-.saved-msg{font-size:12px;color:var(--moss);margin-top:10px;display:none;}
+.brand small{
+  display:block;
+  margin-top:9px;
+  letter-spacing:.13em;
+  font-size:9px;
+  opacity:.65;
+}
 
-.empty-state{background:var(--card);border:1px dashed var(--line);border-radius:4px;padding:28px;text-align:center;color:var(--slate);font-size:13px;margin-top:20px;}
-.empty-state .mono{display:block;margin-top:8px;font-size:12px;}
-.empty-state ul{text-align:left;max-width:420px;margin:12px auto 0;font-size:12.5px;}
+.nav button{
+  display:block;
+  width:100%;
+  border:0;
+  background:transparent;
+  color:#dbe9e3;
+  text-align:left;
+  padding:11px 12px;
+  border-radius:8px;
+  margin:2px 0;
+}
 
-footer{max-width:1180px;margin:0 auto;padding:0 32px 60px;color:var(--slate);font-size:12px;}
-.back-link{font-size:13px;color:var(--slate);display:inline-block;margin-bottom:18px;}
-.back-link:hover{color:var(--clay);}
-.summary-line{font-size:13px;color:var(--slate);margin-bottom:14px;}
-.table-scroll{overflow-x:auto;}
-.table-scroll table{white-space:nowrap;}
-.table-scroll td, .table-scroll th{font-size:12px;padding:8px 9px;}
-.seg{display:inline-flex;gap:4px;background:var(--limestone-dim);padding:3px;border-radius:4px;}
-.seg button{border:none;background:transparent;font-family:'Inter';font-size:12px;padding:5px 12px;border-radius:3px;cursor:pointer;color:var(--slate);}
-.seg button.active{background:var(--card);color:var(--soil-900);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08);}
-.panel-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
-.panel-head h3{margin:0;}
+.nav button.active,
+.nav button:hover{
+  background:#2b604f;
+  color:#fff;
+}
+
+.content{
+  margin-left:250px;
+  width:calc(100% - 250px);
+  padding:26px 30px 48px;
+}
+
+.topbar{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:20px;
+  margin-bottom:20px;
+}
+
+.page-title{
+  font:500 34px Georgia,serif;
+  margin:0 0 5px;
+}
+
+h2{
+  font:600 19px Georgia,serif;
+  margin:0;
+}
+
+h3{
+  font:600 17px Georgia,serif;
+  margin:0;
+}
+
+.sub{
+  color:var(--muted);
+}
+
+.actions{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  flex-wrap:wrap;
+}
+
+.btn,
+.select,
+.search{
+  border:1px solid var(--line);
+  background:#fff;
+  color:var(--ink);
+  padding:9px 11px;
+  border-radius:7px;
+}
+
+.btn.primary{
+  background:var(--ink);
+  color:#fff;
+  border-color:var(--ink);
+}
+
+.status{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  color:var(--muted);
+  font-size:12px;
+}
+
+.status i{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  display:inline-block;
+  background:var(--green);
+}
+
+.filterbar{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  flex-wrap:wrap;
+  margin-bottom:14px;
+}
+
+.filterbar label{
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color:var(--muted);
+}
+
+.grid-6{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:11px;
+}
+
+.grid-4{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:11px;
+}
+
+.grid-3{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:11px;
+}
+
+.grid-2{
+  display:grid;
+  grid-template-columns:1.25fr 1fr;
+  gap:12px;
+}
+
+.kpi,
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:16px;
+  box-shadow:var(--shadow);
+}
+
+.kpi label,
+.metric label,
+.info label{
+  font-size:10px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:var(--muted);
+}
+
+.kpi b{
+  display:block;
+  font:600 24px Georgia,serif;
+  margin-top:8px;
+}
+
+.kpi small{
+  display:block;
+  color:var(--muted);
+  margin-top:5px;
+  font-size:11px;
+}
+
+.section{
+  margin-top:18px;
+}
+
+.section-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+
+.project-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:11px;
+}
+
+.project{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:17px;
+  cursor:pointer;
+}
+
+.project:hover{
+  box-shadow:var(--shadow);
+  transform:translateY(-1px);
+}
+
+.project .eyebrow{
+  font-size:11px;
+  color:var(--muted);
+}
+
+.project .name{
+  font:600 21px Georgia,serif;
+  margin:6px 0 3px;
+}
+
+.progress{
+  height:7px;
+  background:#ebebe5;
+  border-radius:15px;
+  overflow:hidden;
+  margin:13px 0;
+}
+
+.progress span{
+  height:100%;
+  display:block;
+  background:var(--green);
+}
+
+.project-stats{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+
+.project-stats small{
+  color:var(--muted);
+  font-size:10px;
+}
+
+.project-stats strong{
+  display:block;
+  margin-top:2px;
+}
+
+.chartbox{
+  height:285px;
+}
+
+.funnel{
+  height:255px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  gap:18px;
+  padding:15px;
+}
+
+.fstep{
+  text-align:center;
+  min-width:75px;
+}
+
+.fbar{
+  width:72px;
+  margin:0 auto 7px;
+  background:var(--green);
+  border-radius:5px 5px 2px 2px;
+  opacity:.75;
+}
+
+.fstep b{
+  display:block;
+  font:600 21px Georgia,serif;
+}
+
+.fstep small{
+  color:var(--muted);
+}
+
+.row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 0;
+  border-bottom:1px solid #eeeae1;
+  font-size:12px;
+}
+
+.row:last-child{
+  border-bottom:0;
+}
+
+.badge{
+  font-size:10px;
+  padding:4px 8px;
+  border-radius:20px;
+  white-space:nowrap;
+}
+
+.badge.good{
+  background:#e8f2ec;
+  color:#2e705a;
+}
+
+.badge.warn{
+  background:#faf0dd;
+  color:#906924;
+}
+
+.badge.bad{
+  background:#f9e8e5;
+  color:#a64f45;
+}
+
+.badge.info{
+  background:#eaf0f4;
+  color:#4e7087;
+}
+
+.table-wrap{
+  overflow:auto;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:12px;
+}
+
+th,
+td{
+  padding:9px 7px;
+  border-bottom:1px solid #eeeae1;
+  text-align:left;
+  white-space:nowrap;
+}
+
+th{
+  font-size:10px;
+  text-transform:uppercase;
+  color:var(--muted);
+  letter-spacing:.05em;
+}
+
+.tabs{
+  display:flex;
+  gap:6px;
+  overflow:auto;
+  margin:12px 0 14px;
+}
+
+.tab{
+  border:1px solid var(--line);
+  background:#fff;
+  border-radius:7px;
+  padding:9px 12px;
+  color:var(--muted);
+}
+
+.tab.active{
+  background:var(--ink);
+  border-color:var(--ink);
+  color:#fff;
+}
+
+.info{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:9px;
+  padding:14px;
+}
+
+.info b{
+  display:block;
+  font:600 19px Georgia,serif;
+  margin-top:6px;
+}
+
+.notice{
+  background:#f2efe6;
+  border:1px dashed #d8d0c1;
+  border-radius:9px;
+  padding:13px;
+  color:var(--muted);
+}
+
+.error{
+  background:#faebe8;
+  border:1px solid #e5c4be;
+  border-radius:9px;
+  padding:13px;
+  color:#9b463d;
+}
+
+.empty{
+  padding:30px;
+  text-align:center;
+  color:var(--muted);
+}
+
+@media(max-width:1200px){
+  .grid-6{grid-template-columns:repeat(3,1fr)}
+  .grid-4{grid-template-columns:repeat(2,1fr)}
+  .project-grid{grid-template-columns:1fr}
+  .grid-2{grid-template-columns:1fr}
+}
+
+@media(max-width:760px){
+  .sidebar{
+    position:static;
+    width:100%;
+    height:auto;
+  }
+
+  .app{display:block}
+
+  .content{
+    margin-left:0;
+    width:100%;
+    padding:20px 14px;
+  }
+
+  .nav{
+    display:flex;
+    overflow:auto;
+  }
+
+  .nav button{
+    min-width:max-content;
+  }
+
+  .topbar{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .grid-6{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .grid-3{
+    grid-template-columns:1fr;
+  }
+
+  .grid-4{
+    grid-template-columns:1fr 1fr;
+  }
+}
 </style>
 </head>
+
 <body>
 
-<header class="top">
-  <div class="brand" onclick="nav('home')">
-    <span id="brandMark"></span><span>Earthen Spaces</span>
-  </div>
-  <div class="crumbs" id="crumbs"></div>
-  <div class="live-pill"><span class="dot"></span><span id="lastUpdated">Synced</span></div>
-</header>
+<div class="app">
 
-<main id="app"></main>
-<footer id="foot"></footer>
+  <aside class="sidebar">
+
+    <div class="brand">
+      <h1>EARTHEN<br>SPACES</h1>
+      <small>BUILDING BETTER TOMORROWS</small>
+    </div>
+
+    <nav class="nav">
+      <button data-page="home" class="active">⌂ &nbsp; Home</button>
+      <button data-page="projects">▦ &nbsp; Projects</button>
+      <button data-page="approvals">✓ &nbsp; Approvals</button>
+      <button data-page="finance">₹ &nbsp; Finance</button>
+      <button data-page="marketing">◈ &nbsp; Marketing</button>
+      <button data-page="presales">☎ &nbsp; Pre-Sales</button>
+      <button data-page="sales">▤ &nbsp; Sales</button>
+      <button data-page="cp">♧ &nbsp; Channel Partners</button>
+      <button data-page="crm">◎ &nbsp; CRM & Collections</button>
+    </nav>
+
+  </aside>
+
+  <main class="content">
+    <div id="appRoot">
+      <div class="sub">Loading dashboard…</div>
+    </div>
+  </main>
+
+</div>
 
 <script>
-/* ---------- BRAND / LOGO ----------
-   Paste a hosted image URL (png/svg/jpg) here to show your company logo in the
-   header instead of the plain color mark. Leave blank to keep the mark. */
-const COMPANY_LOGO_URL = '';
-document.getElementById('brandMark').innerHTML = COMPANY_LOGO_URL
-  ? `<img class="logo" src="${COMPANY_LOGO_URL}" alt="Earthen Spaces">`
-  : `<span class="mark"></span>`;
 
-/* ---------- LIVE DATA CONFIG ---------- */
-const DATA_API_URL = 'https://script.google.com/macros/s/AKfycbwL0Rp36wPB54cHNGla6wjlU6qsSgM6lhvnVA5cNVpx-aaFQG0fH2G3Dblgwke8f8U/exec';
+/* ==================================================
+   API
+   ================================================== */
 
-/* Tabs the v3 Apps Script currently reads/writes — keep in sync with WIRED_SHEETS in AppsScript_Code_v3.gs */
-const WIRED_SHEETS = [
-  'Approvals','VV_Projects_Budget','VV_Projects_Workorder','VV_Project_SiteStatus',
-  'VV_Marketing_Targets','VV_Marketing_Vendor','VV_Marketing_GTMPlan',
-  'Sales_Bookings','VV_Inventory','Incentive_Targets','SiteVisit','Lead_Report'
-];
+const API =
+"https://script.google.com/macros/s/AKfycbziG51HnCv6QSyq7EGmLQfOc4_zBLPMEAO10x0OwLnNtLroqbALgJDhvsCo2dpSda1pyw/exec";
 
-/* ---------- PROJECT SCOPE ----------
-   Several tabs (Lead_Report, Sales_Bookings, SiteVisit, and any future
-   shared tab) hold rows for ALL projects, distinguished by a 'Project'
-   column. IMPORTANT: the actual sheet values are "Vista Villa" (no "s"),
-   with inconsistent casing ("Vista Villa" / "Vista villa" / "vista villa").
-   This constant must match the sheet's spelling, not the project's display
-   name — a mismatch here (previously "Vista Villas") silently filters
-   every row out of Sales/SiteVisit/Leads, which is why those pages showed
-   all zeros. When Old Madras or Nagaram get their own dashboard, set this
-   to whatever that project is actually spelled as in the sheet. */
-const CURRENT_PROJECT = 'Vista Villa';
 
-/* Normalizes a project name for comparison: trim, lowercase, and strip a
-   trailing 's' so "Vista Villa" and "Vista Villas" are treated as the same
-   project. This matters because different tabs spell it differently:
-   SiteVisit/Sales_Bookings use "Vista Villa" (no s), Lead_Report uses
-   "Vista Villas" (with s) almost everywhere. An exact-match filter against
-   a single CURRENT_PROJECT value would always zero out one tab or the
-   other depending on which spelling was chosen. */
-function normalizeProjectName_(v){
-  let s = String(v||'').trim().toLowerCase();
-  if(s.endsWith('s')) s = s.slice(0,-1);
-  return s;
+/* ==================================================
+   STATE
+   ================================================== */
+
+let cache = {
+  dashboard:null,
+  inventory:null,
+  approvals:null,
+  projects:null,
+  leads:null,
+  visits:null,
+  bookings:null,
+  finance:null,
+  project:null
+};
+
+let activeChart = null;
+
+
+/* ==================================================
+   HELPERS
+   ================================================== */
+
+const esc = value =>
+  String(value ?? "")
+    .replace(/[&<>"']/g, char => ({
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#039;"
+    }[char]));
+
+const num = value =>
+  Number(value || 0);
+
+
+function money(value){
+
+  const n = num(value);
+  const a = Math.abs(n);
+
+  if(a >= 10000000)
+    return "₹" + (n / 10000000).toFixed(2) + " Cr";
+
+  if(a >= 100000)
+    return "₹" + (n / 100000).toFixed(1) + " L";
+
+  return "₹" + Math.round(n).toLocaleString("en-IN");
 }
 
-/* Filters rows to CURRENT_PROJECT if the rows have a 'Project' column;
-   rows without that column (e.g. tabs already scoped to one project via
-   a VV_ prefix) are returned unchanged. Comparison ignores case and a
-   trailing 's' so the Villa/Villas spelling split doesn't drop rows. */
-function filterByProject(rows){
-  if(!rows || !rows.length) return rows;
-  if(rows[0].Project === undefined) return rows; // no Project column — nothing to filter
-  const target = normalizeProjectName_(CURRENT_PROJECT);
-  return rows.filter(r => normalizeProjectName_(r.Project) === target);
+
+function badge(status){
+
+  const x =
+    String(status || "").toLowerCase();
+
+  let cls = "info";
+
+  if(
+    x.includes("pending") ||
+    x.includes("planned") ||
+    x.includes("hold")
+  )
+    cls = "warn";
+
+  if(
+    x.includes("completed") ||
+    x.includes("done") ||
+    x.includes("paid") ||
+    x.includes("active") ||
+    x.includes("ongoing")
+  )
+    cls = "good";
+
+  if(
+    x.includes("delay") ||
+    x.includes("cancel") ||
+    x.includes("blocked")
+  )
+    cls = "bad";
+
+  return `
+    <span class="badge ${cls}">
+      ${esc(status || "—")}
+    </span>
+  `;
 }
 
-/* Refresh cadence: twice a day (every 12 hours), not every few seconds. */
-const REFRESH_INTERVAL_MS = 12 * 60 * 60 * 1000;
 
-async function fetchLiveData(){
-  if(!DATA_API_URL) return null;
+async function api(action, params = {}){
+
+  const query =
+    new URLSearchParams({
+      action,
+      ...params,
+      _:Date.now()
+    });
+
+  const response =
+    await fetch(API + "?" + query.toString());
+
+  if(!response.ok)
+    throw new Error("API request failed (" + response.status + ")");
+
+  const result =
+    await response.json();
+
+  if(result.success === false)
+    throw new Error(result.error || "API error");
+
+  return result;
+}
+
+
+function setActive(page){
+
+  document
+    .querySelectorAll(".nav button")
+    .forEach(button =>
+      button.classList.toggle(
+        "active",
+        button.dataset.page === page
+      )
+    );
+}
+
+
+function destroyChart(){
+
+  if(activeChart){
+
+    activeChart.destroy();
+
+    activeChart = null;
+  }
+}
+
+
+function head(title, subtitle, extra = ""){
+
+  return `
+    <div class="topbar">
+
+      <div>
+        <h1 class="page-title">${esc(title)}</h1>
+        <div class="sub">${esc(subtitle)}</div>
+      </div>
+
+      <div class="actions">
+
+        ${extra}
+
+        <span class="status">
+          <i></i>
+          Live
+        </span>
+
+      </div>
+
+    </div>
+  `;
+}
+
+
+function kpi(label,value,note){
+
+  return `
+    <div class="kpi">
+
+      <label>${esc(label)}</label>
+
+      <b>${value}</b>
+
+      <small>${esc(note)}</small>
+
+    </div>
+  `;
+}
+
+
+function projectCard(project){
+
+  const total =
+    num(project.units);
+
+  const booked =
+    num(project.bookedUnits);
+
+  const percentage =
+    total
+      ? Math.min(100, booked / total * 100)
+      : 0;
+
+  return `
+    <div
+      class="project"
+      onclick="openProject('${esc(project.projectId)}')"
+    >
+
+      <div class="eyebrow">
+        ${esc(project.projectId)}
+        ·
+        ${esc(project.location || "")}
+      </div>
+
+      <div class="name">
+        ${esc(project.projectName)}
+      </div>
+
+      <div class="sub">
+        ${esc(project.status || "")}
+        · Completion
+        ${esc(project.expectedCompletion || "—")}
+      </div>
+
+      <div class="progress">
+        <span style="width:${percentage}%"></span>
+      </div>
+
+      <div class="project-stats">
+
+        <div>
+          <small>Units</small>
+          <strong>${total}</strong>
+        </div>
+
+        <div>
+          <small>Booked</small>
+          <strong>${booked}</strong>
+        </div>
+
+        <div>
+          <small>Leads</small>
+          <strong>${num(project.leads)}</strong>
+        </div>
+
+      </div>
+
+    </div>
+  `;
+}
+
+
+function table(headers,rows){
+
+  if(!rows.length)
+    return `<div class="empty">No records found.</div>`;
+
+  return `
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+          <tr>
+            ${headers
+              .map(header => `<th>${esc(header)}</th>`)
+              .join("")}
+          </tr>
+        </thead>
+
+        <tbody>
+
+          ${rows
+            .map(row => `
+              <tr>
+                ${row
+                  .map(value => `<td>${value}</td>`)
+                  .join("")}
+              </tr>
+            `)
+            .join("")}
+
+        </tbody>
+
+      </table>
+
+    </div>
+  `;
+}
+
+
+function projectOptions(selected = "ALL"){
+
+  const list =
+    cache.projects || [];
+
+  return `
+    <option value="ALL"
+      ${selected === "ALL" ? "selected" : ""}>
+      All Projects
+    </option>
+
+    ${list
+      .map(project => `
+        <option
+          value="${esc(project.projectId)}"
+          ${selected === project.projectId ? "selected" : ""}
+        >
+          ${esc(project.projectName)}
+        </option>
+      `)
+      .join("")}
+  `;
+}
+
+
+function projectFilter(current, callback){
+
+  return `
+    <div class="filterbar">
+
+      <label>Project</label>
+
+      <select
+        class="select"
+        id="projectFilter"
+        onchange="${callback}(this.value)"
+      >
+
+        ${projectOptions(current)}
+
+      </select>
+
+    </div>
+  `;
+}
+
+
+/* ==================================================
+   HOME
+   ================================================== */
+
+async function home(){
+
+  setActive("home");
+  destroyChart();
+
+  document.getElementById("appRoot").innerHTML =
+    '<div class="sub">Loading live dashboard…</div>';
+
   try{
-    const res = await fetch(DATA_API_URL);
-    if(!res.ok) throw new Error('bad response');
-    return await res.json();
-  }catch(err){
-    console.warn('Live fetch failed, staying on mock data:', err);
-    return null;
-  }
-}
 
-function safe(fn, fallback){
-  try{ const v = fn(); return (v===undefined||v===null||Number.isNaN(v)) ? fallback : v; }
-  catch(e){ return fallback; }
-}
-function sum(rows, key){ return (rows||[]).reduce((s,r)=>s+Number(r[key]||0),0); }
-function isSheetLive(name){ return !!DATA_API_URL && !!(store.vv.rawSheets[name] && store.vv.rawSheets[name].length); }
-function statusClass(status){
-  const s = String(status||'').toLowerCase();
-  if(s==='done'||s==='completed') return 'status-done';
-  if(s==='pending'||s==='scheduled') return 'status-pending';
-  return 'status-notstarted';
-}
+    const [
+      dashboard,
+      inventory,
+      approvals
+    ] =
+    await Promise.all([
+      api("dashboard"),
+      api("inventory"),
+      api("approvals")
+    ]);
 
-/* SiteVisit-specific status normalizer. Real values in the sheet are:
-   Lost, Cancle (sic — a typo in the source data, not "Cancelled"), Booked,
-   Cold, Warm, Hot. There is no Done/Scheduled status for this tab. */
-function siteVisitStatusClass(status){
-  const s = String(status||'').trim().toLowerCase();
-  if(s==='booked') return 'status-done';
-  if(s==='hot'||s==='warm') return 'status-pending';
-  return 'status-notstarted'; // lost, cancle, cold, unspecified
-}
+    cache.dashboard = dashboard;
+    cache.inventory = inventory;
+    cache.approvals = approvals.data || [];
+    cache.projects = dashboard.projects || [];
 
-/* ---------- LIVE DATA MAPPING ---------- */
-function mapLiveDataToStore(data){
-  if(!data || !data.sheets) return;
-  const S = data.sheets;
-  store.vv.rawSheets = S;
+    const k =
+      dashboard.kpis;
 
-  if(S.Approvals && S.Approvals.length) store.vv.approvalsRows = S.Approvals;
+    const f =
+      dashboard.funnel;
 
-  if(S.VV_Projects_Budget) store.vv.projects.budgetRows = S.VV_Projects_Budget;
-  if(S.VV_Project_SiteStatus) store.vv.projects.siteStatus = S.VV_Project_SiteStatus;
-  if(S.VV_Payment_Tracker) store.vv.projects.paymentTracker = S.VV_Payment_Tracker;
+    const fin =
+      dashboard.finance;
 
-  if(S.Sales_Bookings) store.vv.sales.bookingsRows = filterByProject(S.Sales_Bookings);
-  if(S.VV_Inventory && S.VV_Inventory.length){
-    const byType = {};
-    S.VV_Inventory.forEach(u => {
-      const t = u['Project'] || 'Unit';
-      byType[t] = byType[t] || {type:t, total:0, sold:0, avail:0, price:''};
-      byType[t].total++;
-      if(String(u['Availabality']).trim() === 'Booked') byType[t].sold++; else byType[t].avail++;
-      byType[t].price = u['Rate per Sq.ft'] ? `₹${u['Rate per Sq.ft']}/sqft` : '';
-    });
-    store.vv.sales.inventory = Object.values(byType);
-  }
-  if(S.SiteVisit) store.vv.sales.siteVisits = filterByProject(S.SiteVisit);
+    document.getElementById("appRoot").innerHTML =
 
-  if(S.Lead_Report && S.Lead_Report.length){
-    const leadRows = filterByProject(S.Lead_Report);
-    store.vv.sales.leads = leadRows.map(r => ({
-      name: r['Lead Id'] || '—',
-      source: r['Source'] || 'Other',
-      stage: r['Lead Stage'] || '—',
-      date: r['Date'] || null,
-      project: r['Project'] || '',
-      campaign: r['Campaign'] || '',
-      subsource: r['Sub-Source'] || '',
-      assignedTo: r['Lead Assigned to'] || '',
-      team: r['Team'] || '',
-      raw: r
-    }));
-    store.vv.sales.leadsLive = true;
-  }
+      head(
+        "Company Dashboard",
+        "Overall performance across Earthen Spaces.",
+        `<button class="btn" onclick="home()">↻ Refresh</button>`
+      )
 
-  if(S.VV_Marketing_Vendor) store.vv.marketing.vendor = S.VV_Marketing_Vendor;
-  if(S.VV_Marketing_GTMPlan) store.vv.marketing.gtm = S.VV_Marketing_GTMPlan;
+      +
 
-  store.companyRollup.activeUnits = safe(()=>store.vv.sales.inventory.reduce((a,i)=>a+Number(i.sold||0),0), store.companyRollup.activeUnits);
-}
+      `<div class="grid-6">
 
-async function refreshFromApi(){
-  const data = await fetchLiveData();
-  if(data){
-    mapLiveDataToStore(data);
-    document.getElementById('lastUpdated').textContent = 'Synced ' + new Date().toLocaleString();
-    render();
-  }
-}
+        ${kpi(
+          "Projects",
+          k.totalProjects,
+          "Active portfolio"
+        )}
 
-/* ---------- MOCK DATA STORE ---------- */
-const projectsList = [
-  {id:'vista-villas', name:'Vista Villas', loc:'Kelambakkam, OMR', live:true},
-  {id:'old-madras', name:'Old Madras', loc:'Old Madras Road', live:false},
-  {id:'nagaram', name:'Nagaram', loc:'Nagaram', live:false},
-];
+        ${kpi(
+          "Leads",
+          k.totalLeads,
+          "All sources"
+        )}
 
-const depts = ['Approvals','Projects','Marketing','Pre-sales','Sales','CP','CRM','Incentive'];
-const deptRoute = {
-  'Approvals':'approvals', 'Projects':'projects', 'Marketing':'marketing',
-  'Sales':'sales', 'Pre-sales':'presales', 'CP':'cp', 'CRM':'crm', 'Incentive':'incentive'
-};
+        ${kpi(
+          "Site Visits",
+          k.totalSiteVisits,
+          `${k.firstVisits} first · ${k.revisits} revisit`
+        )}
 
-let store = {
-  companyRollup: { revenue: 184.2, collections: 61.5, activeUnits: 612 },
-  vv: {
-    approvalsRows: [
-      {Stage:'Layout approval', Status:'Done'},
-      {Stage:'Environmental clearance', Status:'Done'},
-      {Stage:'Building plan sanction', Status:'Pending'},
-      {Stage:'Fire NOC', Status:'Not started'},
-    ],
-    rawSheets: {},
-    projects: {
-      budgetRows: [], // VV_Projects_Budget — not yet returning rows
-      siteStatus: [
-        {Unit:'V-101', Type:'Villa 3BHK', 'Current Stage':'Roof slab', 'Completion Date':'2024-11-15'},
-        {Unit:'V-102', Type:'Villa 3BHK', 'Current Stage':'Foundation', 'Completion Date':'2025-01-20'},
-      ],
-      paymentTracker: null // expects a VV_Payment_Tracker tab once added to the sheet
-    },
-    marketing: {
-      vendor: [
-        {Vendor:'Meta Ads', Category:'Digital', Budget:6.0, 'Spend (Rs L)':4.2, Leads:210},
-        {Vendor:'99acres', Category:'Portal', Budget:2.5, 'Spend (Rs L)':1.8, Leads:95},
-      ],
-      gtm: [
-        {Date:'2024-08-05', Activity:'Site walkthrough event', Type:'On-ground', 'Planned/Actual':'Actual', Notes:'42 attendees'},
-        {Date:'2024-08-20', Activity:'Instagram reel campaign', Type:'Digital', 'Planned/Actual':'Planned', Notes:''},
-      ]
-    },
-    sales: {
-      inventory: [
-        {type:'Villa · 3BHK', total:120, sold:74, avail:46, price:'₹2.4 Cr'},
-        {type:'Villa · 4BHK', total:60, sold:39, avail:21, price:'₹3.1 Cr'},
-        {type:'Plot · 2400 sqft', total:180, sold:112, avail:68, price:'₹0.95 Cr'},
-        {type:'Plot · 3000 sqft', total:90, sold:41, avail:49, price:'₹1.2 Cr'},
-      ],
-      bookingsRows: [
-        {'Customer Name':'R. Sundaram','Booking Date':'2024-08-14',Project:'Vista Villas','Unit No':'V-101','Total Value':24000000,Source:'Marketing'},
-        {'Customer Name':'K. Priya','Booking Date':'2024-08-16',Project:'Vista Villas','Unit No':'P-233','Total Value':9500000,Source:'CP'},
-      ],
-      siteVisits: [
-        {'Lead Id':'LD-2291','Site Visit Date':'2024-08-14', Project:'Vista Villas', Status:'Booked', Source:'Marketing'},
-        {'Lead Id':'LD-2305','Site Visit Date':'2024-08-16', Project:'Vista Villas', Status:'Warm', Source:'CP'},
-      ],
-      leadsLive: false,
-      leads: [
-        {name:'R. Sundaram', source:'Marketing', stage:'Site visit done', date:'2024-08-14', updated:'2h ago'},
-        {name:'K. Priya', source:'CP', stage:'Booking in progress', date:'2024-08-15', updated:'4h ago'},
-        {name:'A. Fernandez', source:'Sales', stage:'Prospect', date:'2024-08-16', updated:'1d ago'},
-        {name:'M. Iqbal', source:'Pre-sales', stage:'Site visit scheduled', date:'2024-08-17', updated:'1d ago'},
-        {name:'S. Lakshmi', source:'CP', stage:'Booked', date:'2024-08-18', updated:'2d ago'},
-      ]
-    }
-  }
-};
+        ${kpi(
+          "Bookings",
+          k.totalBookings,
+          money(k.totalBookingValue)
+        )}
 
-let charts = {};
+        ${kpi(
+          "Collections",
+          money(k.totalCollections),
+          "CRM collections"
+        )}
 
-/* ---------- generic helpers ---------- */
-function genericTable(rows, cols){
-  if(!rows || !rows.length) return `<div class="empty-state">No rows in this sheet yet.</div>`;
-  const c = cols || Object.keys(rows[0]);
-  return `<table><thead><tr>${c.map(x=>`<th>${x}</th>`).join('')}</tr></thead>
-    <tbody>${rows.map(r=>`<tr>${c.map(x=>`<td>${r[x]!==undefined&&r[x]!==''?r[x]:'—'}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
-}
+        ${kpi(
+          "Net Cash",
+          money(k.netCashPosition),
+          k.netCashPosition < 0
+            ? "Current position"
+            : "Positive position"
+        )}
 
-function renderNotWired(name, needs){
-  return `
-  <a class="back-link" href="#project/vista-villas">← Vista Villas</a>
-  <div class="hero-row"><div><h1>${name}</h1><p>No sheet tab is wired for ${name} yet.</p></div></div>
-  <div class="empty-state">
-    Add a tab to the spreadsheet covering what this page needs, list it in
-    <span class="mono">WIRED_SHEETS</span> in the Apps Script, and redeploy — this page will pick it up automatically.
-    <ul>${needs.map(n=>`<li>${n}</li>`).join('')}</ul>
-  </div>`;
-}
+      </div>`
 
-/* ---------- ROUTER ---------- */
-function nav(route){ location.hash = route; }
-window.addEventListener('hashchange', render);
+      +
 
-function render(){
-  const hash = location.hash.replace('#','') || 'home';
-  const parts = hash.split('/');
-  const app = document.getElementById('app');
-  const crumbs = document.getElementById('crumbs');
-  const crumbBase = `<a href="#home">Home</a> / <a href="#project/vista-villas">Vista Villas</a> / `;
+      `<div class="section">
 
-  if(parts[0]==='home'){
-    crumbs.innerHTML = '';
-    app.innerHTML = renderHome();
-  } else if(parts[0]==='project' && parts[1]==='vista-villas'){
-    crumbs.innerHTML = `<a href="#home">Home</a> / Vista Villas`;
-    app.innerHTML = renderProject();
-  } else if(parts[0]==='dept' && parts[1]==='vista-villas'){
-    const d = parts[2];
-    const titles = {approvals:'Approvals',projects:'Projects',marketing:'Marketing',sales:'Sales',presales:'Pre-sales',cp:'CP',crm:'CRM',incentive:'Incentive'};
-    crumbs.innerHTML = crumbBase + (titles[d]||'');
-    if(d==='approvals'){ app.innerHTML = renderApprovalsDept(); }
-    else if(d==='projects'){ app.innerHTML = renderProjectsDept(); }
-    else if(d==='marketing'){ app.innerHTML = renderMarketingDept(); }
-    else if(d==='sales'){ app.innerHTML = renderSalesDept(); setTimeout(renderSalesCharts,0); }
-    else if(d==='presales'){ app.innerHTML = renderNotWired('Pre-sales — Calling report', ['A tab (e.g. Calling_Report) with columns like Presales Name, Calls Made, Connected, Follow-ups, Date']); }
-    else if(d==='cp'){ app.innerHTML = renderNotWired('CP', ['CPs onboarded (a roster tab)','Active CPs this period','CP-wise earning report (commission by CP)','Project-wise CP contribution']); }
-    else if(d==='crm'){ app.innerHTML = renderNotWired('CRM', ['Collection targets','Amounts collected','Customer-wise account statement']); }
-    else if(d==='incentive'){ app.innerHTML = renderIncentiveDept(); setTimeout(renderIncentiveChart,0); }
-    else { location.hash='home'; return; }
-  } else {
-    location.hash = 'home';
-    return;
-  }
-  document.getElementById('foot').innerHTML =
-    `Vista Villas — data syncs twice a day from your live sheet. CP and CRM have no source tab yet.`;
-}
+        <div class="section-head">
 
-/* ---------- HOME ---------- */
-function renderHome(){
-  const r = store.companyRollup;
-  return `
-  <div class="hero-row">
-    <div><h1>All projects</h1></div>
-  </div>
-  <div class="grid-projects">
-    ${projectsList.map(p => `
-      <div class="pcard ${p.live?'active':'soon'}" ${p.live?`onclick="nav('project/${p.id}')"`:''}>
-        <div class="loc">${p.loc}</div>
-        <h3>${p.name}</h3>
-      </div>
-    `).join('')}
-  </div>`;
-}
+          <h2>Projects Overview</h2>
 
-/* ---------- PROJECT PAGE ---------- */
-function renderProject(){
-  return `
-  <a class="back-link" href="#home">← All projects</a>
-  <div class="hero-row">
-    <div><h1>Vista Villas</h1><p>Kelambakkam, OMR</p></div>
-  </div>
-  <div class="dept-grid">
-    ${depts.map(dn => {
-      const route = deptRoute[dn];
-      const wiredTabByDept = {
-        Approvals:'Approvals', Projects:'VV_Projects_Budget', Sales:'Sales_Bookings',
-        Marketing:'VV_Marketing_Vendor', Incentive:'Incentive_Targets'
-      };
-      const tab = wiredTabByDept[dn];
-      const isLive = tab ? isSheetLive(tab) : false;
-      const isWired = !!tab;
-      return `
-      <div class="dtile active" onclick="nav('dept/vista-villas/${route}')">
-        <div class="name">${dn} ${isLive?'<span class="tag">Live</span>':(isWired?'<span class="tag soon">Mock</span>':'<span class="tag soon">Not wired</span>')}</div>
-        <div class="sub">${isWired?'Full report available':'No sheet tab yet — click for details'}</div>
+          <span class="sub">
+            Click a project for details
+          </span>
+
+        </div>
+
+        <div class="project-grid">
+
+          ${cache.projects
+            .map(projectCard)
+            .join("")}
+
+        </div>
+
+      </div>`
+
+      +
+
+      `<div class="section grid-2">
+
+        <div class="card">
+
+          <div class="section-head">
+            <h2>Lead Funnel</h2>
+            <span class="sub">Company total</span>
+          </div>
+
+          <div class="funnel">
+
+            ${funnelStep("Leads",f.leads,100)}
+
+            ${funnelStep(
+              "Site Visits",
+              f.siteVisits,
+              f.leads
+                ? f.siteVisits / f.leads * 100
+                : 12
+            )}
+
+            ${funnelStep(
+              "Bookings",
+              f.bookings,
+              f.leads
+                ? f.bookings / f.leads * 100
+                : 12
+            )}
+
+            ${funnelStep(
+              "Collections",
+              f.collections,
+              f.leads
+                ? f.collections / f.leads * 100
+                : 12
+            )}
+
+          </div>
+
+        </div>
+
+        <div class="card">
+
+          <div class="section-head">
+
+            <h2>Inventory</h2>
+
+            <span class="sub">
+              ${inventory.summary.total} units
+            </span>
+
+          </div>
+
+          <div class="chartbox">
+            <canvas id="inventoryChart"></canvas>
+          </div>
+
+        </div>
+
+      </div>`
+
+      +
+
+      `<div class="section grid-3">
+
+        <div class="card">
+
+          <div class="section-head">
+            <h2>Finance</h2>
+          </div>
+
+          ${financeRow(
+            "Collections",
+            money(fin.collections)
+          )}
+
+          ${financeRow(
+            "Project Payments",
+            money(fin.projectPayments)
+          )}
+
+          ${financeRow(
+            "Marketing Payments",
+            money(fin.marketingPayments)
+          )}
+
+          ${financeRow(
+            "Company Expenses",
+            money(fin.companyExpenses)
+          )}
+
+          ${financeRow(
+            "Total Expenses",
+            money(fin.totalExpenses)
+          )}
+
+        </div>
+
+        <div class="card">
+
+          <div class="section-head">
+
+            <h2>Approvals</h2>
+
+            <span class="sub">
+              ${dashboard.approvals.pending} pending
+            </span>
+
+          </div>
+
+          ${cache.approvals
+            .slice(0,6)
+            .map(row => `
+              <div class="row">
+
+                <span>
+                  ${esc(
+                    row["Project Name"] ||
+                    row["Project ID"] ||
+                    "—"
+                  )}
+
+                  <br>
+
+                  <small class="sub">
+                    ${esc(
+                      row["Approval Type"] ||
+                      "—"
+                    )}
+                  </small>
+
+                </span>
+
+                ${badge(row.Status)}
+
+              </div>
+            `)
+            .join("")}
+
+        </div>
+
+        <div class="card">
+
+          <div class="section-head">
+            <h2>Quick View</h2>
+          </div>
+
+          ${financeRow(
+            "Booked Units",
+            inventory.summary.booked
+          )}
+
+          ${financeRow(
+            "Available Units",
+            inventory.summary.available
+          )}
+
+          ${financeRow(
+            "Hold Units",
+            inventory.summary.hold
+          )}
+
+          ${financeRow(
+            "Pending Approvals",
+            dashboard.approvals.pending
+          )}
+
+          ${financeRow(
+            "Company Expenses",
+            money(fin.companyExpenses)
+          )}
+
+        </div>
+
       </div>`;
-    }).join('')}
-  </div>`;
-}
 
-/* ---------- APPROVALS (simplified: list + status only) ---------- */
-function renderApprovalsDept(){
-  const rows = store.vv.approvalsRows;
-  const done = rows.filter(r=>r.Status==='Done').length;
-  return `
-  <a class="back-link" href="#project/vista-villas">← Vista Villas</a>
-  <div class="hero-row"><div><h1>Approvals</h1></div></div>
-  <div class="summary-line">${done} of ${rows.length} approvals done ${isSheetLive('Approvals')?'· live':'· mock'}</div>
+    const canvas =
+      document.getElementById("inventoryChart");
 
-  <div class="panel">
-    <table>
-      <thead><tr><th>Approval</th><th>Status</th></tr></thead>
-      <tbody>
-        ${rows.map(r=>`<tr><td>${r.Stage||r.Approvals||'—'}</td><td><span class="src-badge ${statusClass(r.Status)}">${r.Status||'—'}</span></td></tr>`).join('')}
-      </tbody>
-    </table>
-  </div>
+    activeChart =
+      new Chart(
+        canvas,
+        {
+          type:"doughnut",
 
-  <div class="section-title">Add a new approval</div>
-  <div class="section-sub">${DATA_API_URL ? 'Writes directly to the Approvals tab.' : 'Connect DATA_API_URL to enable writing to the sheet.'}</div>
-  <div class="panel">
-    <div class="form-grid">
-      <div class="field"><label>Approval</label><input type="text" id="entry-appr-0"></div>
-      <div class="field"><label>Status</label><input type="text" id="entry-appr-5" placeholder="Not started / Pending / Done"></div>
-    </div>
-    <button class="btn" onclick="submitApproval()">Add</button>
-    <div class="saved-msg" id="saved-msg-appr">Saved — synced to Approvals</div>
-  </div>
-  `;
-}
+          data:{
+            labels:[
+              "Booked",
+              "Available",
+              "Hold",
+              "Blocked"
+            ],
 
-async function submitApproval(){
-  const row = {
-    'Approvals': document.getElementById('entry-appr-0').value,
-    'Status': document.getElementById('entry-appr-5').value
-  };
-  if(DATA_API_URL){
-    try{ await fetch(DATA_API_URL, { method:'POST', body: JSON.stringify({action:'appendRow', sheet:'Approvals', row}) }); }
-    catch(err){ console.warn('Write failed:', err); }
+            datasets:[
+              {
+                data:[
+                  inventory.summary.booked,
+                  inventory.summary.available,
+                  inventory.summary.hold,
+                  inventory.summary.blocked
+                ]
+              }
+            ]
+          },
+
+          options:{
+            responsive:true,
+            maintainAspectRatio:false,
+            cutout:"68%",
+
+            plugins:{
+              legend:{
+                position:"bottom"
+              }
+            }
+          }
+        }
+      );
+
+  }catch(error){
+
+    showError(error);
+
   }
-  document.getElementById('saved-msg-appr').style.display='block';
-  await refreshFromApi();
+
 }
 
-/* ---------- PROJECTS (Budget, Spend, Balance, Payment tracker, Site stats) ---------- */
-function renderProjectsDept(){
-  const p = store.vv.projects;
-  const budget = sum(p.budgetRows,'Budget');
-  const spend = sum(p.budgetRows,'Spent') || sum(p.budgetRows,'Actual');
-  const balance = budget - spend;
-  const hasBudgetData = p.budgetRows.length > 0;
+
+function funnelStep(label,value,width){
 
   return `
-  <a class="back-link" href="#project/vista-villas">← Vista Villas</a>
-  <div class="hero-row"><div><h1>Projects</h1></div></div>
+    <div class="fstep">
 
-  <div class="kpi-row">
-    <div class="kpi"><div class="lbl">Budget</div><div class="val">${hasBudgetData?`₹${(budget/10000000).toFixed(1)} Cr`:'—'}</div></div>
-    <div class="kpi"><div class="lbl">Spend</div><div class="val">${hasBudgetData?`₹${(spend/10000000).toFixed(1)} Cr`:'—'}</div></div>
-    <div class="kpi"><div class="lbl">Balance</div><div class="val">${hasBudgetData?`₹${(balance/10000000).toFixed(1)} Cr`:'—'}</div></div>
-  </div>
-  ${!hasBudgetData?`<div class="trace">VV_Projects_Budget has no rows yet — add Budget/Spent columns to populate this.</div>`:''}
+      <div
+        class="fbar"
+        style="height:${Math.max(
+          24,
+          width * 1.35
+        )}px"
+      ></div>
 
-  <div class="panel" style="margin-top:16px;">
-    <h3>Payment tracker</h3>
-    ${p.paymentTracker ? genericTable(p.paymentTracker) : `<div class="empty-state">No payment tracker tab yet.<span class="mono">Add a "VV_Payment_Tracker" tab (e.g. Milestone, Due Date, Amount Due, Amount Received, Status) and list it in WIRED_SHEETS.</span></div>`}
-  </div>
+      <b>${num(value)}</b>
 
-  <div class="panel" style="margin-top:16px;">
-    <h3>Site stats</h3>
-    ${genericTable(p.siteStatus)}
-    <div class="trace">Source: <span class="mono">VV_Project_SiteStatus${isSheetLive('VV_Project_SiteStatus')?' (live)':''}</span></div>
-  </div>
+      <small>${esc(label)}</small>
+
+    </div>
   `;
 }
 
-/* ---------- MARKETING (Budget, Spend, Balance, Activities calendar) ---------- */
-function renderMarketingDept(){
-  const m = store.vv.marketing;
-  const budget = sum(m.vendor,'Budget');
-  const spend = sum(m.vendor,'Spend (Rs L)');
-  const balance = budget - spend;
-  const hasBudget = m.vendor.some(v=>v.Budget!==undefined);
+
+function financeRow(label,value){
 
   return `
-  <a class="back-link" href="#project/vista-villas">← Vista Villas</a>
-  <div class="hero-row"><div><h1>Marketing</h1></div></div>
-
-  <div class="kpi-row">
-    <div class="kpi"><div class="lbl">Budget</div><div class="val">${hasBudget?`₹${budget.toFixed(1)} L`:'—'}</div></div>
-    <div class="kpi"><div class="lbl">Spend</div><div class="val">${spend?`₹${spend.toFixed(1)} L`:'—'}</div></div>
-    <div class="kpi"><div class="lbl">Balance</div><div class="val">${hasBudget?`₹${balance.toFixed(1)} L`:'—'}</div></div>
-  </div>
-  <div class="trace">Source: <span class="mono">VV_Marketing_Vendor${isSheetLive('VV_Marketing_Vendor')?' (live)':''}</span></div>
-
-  <div class="panel" style="margin-top:16px;">
-    <h3>Activities calendar</h3>
-    ${genericTable(m.gtm)}
-    <div class="trace">Source: <span class="mono">VV_Marketing_GTMPlan${isSheetLive('VV_Marketing_GTMPlan')?' (live)':''}</span></div>
-  </div>
+    <div class="row">
+      <span>${esc(label)}</span>
+      <b>${value}</b>
+    </div>
   `;
 }
 
-/* ---------- SALES (Inventory, Bookings, Site visit report, Leads report) ---------- */
-function renderSalesDept(){
-  const s = store.vv.sales;
-  const bookedValue = sum(s.bookingsRows, 'Total Value');
-  const svBookedCount = s.siteVisits.filter(v=>String(v.Status||'').trim().toLowerCase()==='booked').length;
-  const svHotCount = s.siteVisits.filter(v=>String(v.Status||'').trim().toLowerCase()==='hot').length;
-  return `
-  <a class="back-link" href="#project/vista-villas">← Vista Villas</a>
-  <div class="hero-row"><div><h1>Sales</h1></div></div>
 
-  <div class="panel">
-    <h3>Inventory</h3>
-    <table>
-      <thead><tr><th>Unit type</th><th>Total</th><th>Sold</th><th>Available</th><th>Price</th></tr></thead>
-      <tbody>${s.inventory.map(i=>`<tr><td>${i.type}</td><td>${i.total}</td><td>${i.sold}</td><td>${i.avail}</td><td>${i.price}</td></tr>`).join('')}</tbody>
-    </table>
-    <div class="trace">Source: <span class="mono">VV_Inventory${isSheetLive('VV_Inventory')?' (live)':''}</span></div>
-  </div>
+/* ==================================================
+   PROJECTS
+   ================================================== */
 
-  <div class="panel" style="margin-top:16px;">
-    <div class="panel-head"><h3>Bookings</h3></div>
-    <div class="kpi-row cols-4" style="margin-bottom:16px;">
-      <div class="kpi"><div class="lbl">Total bookings</div><div class="val">${s.bookingsRows.length}</div></div>
-      <div class="kpi"><div class="lbl">Total value</div><div class="val">${bookedValue?`₹${(bookedValue/10000000).toFixed(2)} Cr`:'—'}</div></div>
-      <div class="kpi"><div class="lbl">This month</div><div class="val">${countInCurrentPeriod(s.bookingsRows,'Booking Date','month')}</div></div>
-      <div class="kpi"><div class="lbl">Top source</div><div class="val" style="font-size:16px;">${topKey(s.bookingsRows,'Source')}</div></div>
-    </div>
-    ${trendBlock('bookingsTrend', s.bookingsRows, 'Booking Date')}
-    <details style="margin-top:16px;"><summary style="cursor:pointer;font-size:13px;color:var(--slate);">View raw rows</summary>
-      <div class="table-scroll" style="margin-top:10px;">${genericTable(formatRowsForDisplay(s.bookingsRows, ['Booking Date']), ['Customer Name','Booking Date','Unit No','Total Value','Source','Sales Name'])}</div>
-    </details>
-    <div class="trace">Source: <span class="mono">Sales_Bookings${isSheetLive('Sales_Bookings')?' (live)':''}</span></div>
-  </div>
+async function projects(){
 
-  <div class="panel" style="margin-top:16px;">
-    <div class="panel-head"><h3>Site visit report</h3></div>
-    <div class="kpi-row cols-4" style="margin-bottom:16px;">
-      <div class="kpi"><div class="lbl">Total visits</div><div class="val">${s.siteVisits.length}</div></div>
-      <div class="kpi"><div class="lbl">Booked</div><div class="val">${svBookedCount}</div></div>
-      <div class="kpi"><div class="lbl">Hot</div><div class="val">${svHotCount}</div></div>
-      <div class="kpi"><div class="lbl">Top source</div><div class="val" style="font-size:16px;">${topKey(s.siteVisits,'Source')}</div></div>
-    </div>
-    <div class="two-col">
-      <div><canvas id="chartSiteVisitStatus"></canvas></div>
-      <div><canvas id="chartSiteVisitSource"></canvas></div>
-    </div>
-    ${trendBlock('siteVisitTrend', s.siteVisits, 'Site Visit Date')}
-    <details style="margin-top:16px;"><summary style="cursor:pointer;font-size:13px;color:var(--slate);">View raw rows</summary>
-      <div class="table-scroll" style="margin-top:10px;">${genericTable(formatRowsForDisplay(s.siteVisits, ['Site Visit Date']))}</div>
-    </details>
-    <div class="trace">Source: <span class="mono">SiteVisit${isSheetLive('SiteVisit')?' (live)':''}</span></div>
-  </div>
+  setActive("projects");
+  destroyChart();
 
-  <div class="panel" style="margin-top:16px;">
-    <div class="panel-head"><h3>Leads report</h3></div>
-    <div class="kpi-row cols-4" style="margin-bottom:16px;">
-      <div class="kpi"><div class="lbl">Total leads</div><div class="val">${s.leads.length}</div></div>
-      <div class="kpi"><div class="lbl">Engaged</div><div class="val">${s.leads.filter(l=>/engaged|prospect|initial/i.test(l.stage)).length}</div></div>
-      <div class="kpi"><div class="lbl">Lost / Junk</div><div class="val">${s.leads.filter(l=>/lost|junk/i.test(l.stage)).length}</div></div>
-      <div class="kpi"><div class="lbl">Top source</div><div class="val" style="font-size:16px;">${topKey(s.leads,'source')}</div></div>
-    </div>
-    <div class="two-col">
-      <div><canvas id="chartLeadsSource"></canvas></div>
-      <div><canvas id="chartLeadsStage"></canvas></div>
-    </div>
-    ${trendBlock('leadsTrend', s.leads, 'date')}
-    <details style="margin-top:16px;"><summary style="cursor:pointer;font-size:13px;color:var(--slate);">View raw rows</summary>
-      <div class="table-scroll" style="margin-top:10px;">${
-        s.leadsLive
-          ? genericTable(s.leads.map(l=>l.raw))
-          : `<table><thead><tr><th>Name</th><th>Source</th><th>Stage</th><th>Date</th></tr></thead>
-             <tbody>${s.leads.map(l=>`<tr><td>${l.name}</td><td><span class="src-badge src-${String(l.source).replace(' ','')}">${l.source}</span></td><td>${l.stage}</td><td>${formatDateShort(l.date)}</td></tr>`).join('')}</tbody></table>`
-      }</div>
-    </details>
-    <div class="trace">Source: <span class="mono">Lead_Report${isSheetLive('Lead_Report')?' (live)':' — mock, tab not returning rows yet'}</span></div>
-  </div>
-  `;
-}
+  document.getElementById("appRoot").innerHTML =
+    '<div class="sub">Loading projects…</div>';
 
-/* ---------- date / trend helpers (shared) ---------- */
-function parseDate(v){
-  if(!v) return null;
-  if(typeof v === 'string'){
-    // DD-MM-YYYY, e.g. Lead_Report
-    let m = v.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
-    if(m) return new Date(Number(m[3]), Number(m[2])-1, Number(m[1]));
-    // DD/MM/YYYY, e.g. SiteVisit — must be parsed manually since new Date()
-    // on slash-separated dates is ambiguous (assumes US MM/DD/YYYY order).
-    m = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if(m) return new Date(Number(m[3]), Number(m[2])-1, Number(m[1]));
+  try{
+
+    const result =
+      await api("projectList");
+
+    cache.projects =
+      result.data || [];
+
+    document.getElementById("appRoot").innerHTML =
+
+      head(
+        "Projects",
+        "Project-wise performance, execution and commercial overview.",
+        `<button class="btn" onclick="projects()">↻ Refresh</button>`
+      )
+
+      +
+
+      `<div class="project-grid">
+
+        ${cache.projects
+          .map(projectCard)
+          .join("")}
+
+      </div>`;
+
+  }catch(error){
+
+    showError(error);
+
   }
-  const d = new Date(v);
-  return isNaN(d) ? null : d;
-}
-function formatDateShort(v){ const d = parseDate(v); return d ? d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : (v||'—'); }
-function formatRowsForDisplay(rows, dateFields){
-  return (rows||[]).map(r=>{
-    const copy = {...r};
-    (dateFields||[]).forEach(f=>{ if(copy[f]!==undefined) copy[f] = formatDateShort(copy[f]); });
-    return copy;
-  });
-}
-function isoWeekLabel(d){
-  const monday = new Date(d);
-  const day = (monday.getDay()+6)%7; // 0=Mon
-  monday.setDate(monday.getDate()-day);
-  return monday.toLocaleDateString('en-IN',{day:'2-digit',month:'short'});
-}
-function groupByPeriod(rows, dateField, mode){
-  const buckets = {};
-  (rows||[]).forEach(r=>{
-    const d = parseDate(r[dateField]);
-    if(!d) return;
-    const key = mode==='week' ? isoWeekLabel(d) : d.toLocaleDateString('en-IN',{month:'short',year:'2-digit'});
-    const sortKey = mode==='week' ? (function(){const m=new Date(d);const day=(m.getDay()+6)%7;m.setDate(m.getDate()-day);return m.getTime();})() : new Date(d.getFullYear(), d.getMonth(),1).getTime();
-    if(!buckets[key]) buckets[key] = {count:0, sortKey};
-    buckets[key].count++;
-  });
-  const entries = Object.entries(buckets).sort((a,b)=>a[1].sortKey-b[1].sortKey);
-  return { labels: entries.map(e=>e[0]), values: entries.map(e=>e[1].count) };
-}
-function countInCurrentPeriod(rows, dateField, mode){
-  const now = new Date();
-  return (rows||[]).filter(r=>{
-    const d = parseDate(r[dateField]);
-    if(!d) return false;
-    if(mode==='month') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
-    return false;
-  }).length;
-}
-function topKey(rows, field){
-  const counts = {};
-  (rows||[]).forEach(r=>{ const k=r[field]||'Other'; counts[k]=(counts[k]||0)+1; });
-  const keys = Object.keys(counts);
-  if(!keys.length) return '—';
-  return keys.reduce((a,b)=>counts[a]>=counts[b]?a:b);
-}
-function countBy(rows, field, normalize){
-  const counts = {};
-  (rows||[]).forEach(r=>{
-    let k = r[field]||'Other';
-    if(normalize) k = normalize(k);
-    counts[k]=(counts[k]||0)+1;
-  });
-  return counts;
+
 }
 
-/* Renders a trend panel with Month/Week toggle buttons + a canvas. State kept in trendState. */
-const trendState = {};
-function trendBlock(key, rows, dateField){
-  if(!trendState[key]) trendState[key] = 'month';
-  trendState[key+'__rows'] = rows;
-  trendState[key+'__field'] = dateField;
-  const mode = trendState[key];
-  return `
-  <div style="margin-top:16px;">
-    <div class="panel-head">
-      <h3 style="font-size:13px;color:var(--slate);text-transform:uppercase;letter-spacing:.03em;">Trend</h3>
-      <div class="seg">
-        <button class="${mode==='month'?'active':''}" onclick="setTrendMode('${key}','month')">Month</button>
-        <button class="${mode==='week'?'active':''}" onclick="setTrendMode('${key}','week')">Week</button>
+
+async function openProject(projectId){
+
+  setActive("projects");
+  destroyChart();
+
+  document.getElementById("appRoot").innerHTML =
+    '<div class="sub">Loading project details…</div>';
+
+  try{
+
+    cache.project =
+      await api(
+        "project",
+        {id:projectId}
+      );
+
+    renderProject("overview");
+
+  }catch(error){
+
+    showError(error);
+
+  }
+
+}
+
+
+function renderProject(tab){
+
+  const data =
+    cache.project;
+
+  const project =
+    data.project;
+
+  const summary =
+    data.summary;
+
+  const tabs = [
+    ["overview","Overview"],
+    ["budget","Budget"],
+    ["workorders","Work Orders"],
+    ["payments","Payments"],
+    ["site","Site Status"],
+    ["sales","Leads & Visits"]
+  ];
+
+  let content = "";
+
+
+  if(tab === "overview"){
+
+    content = `
+
+      <div class="grid-4">
+
+        ${kpi(
+          "Budget",
+          money(summary.budget),
+          "Budget with GST"
+        )}
+
+        ${kpi(
+          "Actual Payments",
+          money(summary.actualPayments),
+          "Project payments"
+        )}
+
+        ${kpi(
+          "Work Orders",
+          summary.workOrderCount,
+          money(summary.workOrderValue)
+        )}
+
+        ${kpi(
+          "Booking Value",
+          money(summary.bookingValue),
+          `${summary.bookings} bookings`
+        )}
+
       </div>
+
+      <div class="section grid-2">
+
+        <div class="card">
+
+          <div class="section-head">
+            <h2>Sales & Site</h2>
+          </div>
+
+          ${financeRow("Total Units",summary.units)}
+          ${financeRow("Booked",summary.bookedUnits)}
+          ${financeRow("Available",summary.availableUnits)}
+          ${financeRow("Hold",summary.holdUnits)}
+          ${financeRow("Leads",summary.leads)}
+          ${financeRow("Site Visits",summary.siteVisits)}
+
+        </div>
+
+        <div class="card">
+
+          <div class="section-head">
+            <h2>Commercial</h2>
+          </div>
+
+          ${financeRow(
+            "Planned Payment Plan",
+            money(summary.plannedPayments)
+          )}
+
+          ${financeRow(
+            "Actual Payments",
+            money(summary.actualPayments)
+          )}
+
+          ${financeRow(
+            "Remaining Budget",
+            money(summary.remainingBudget)
+          )}
+
+          ${financeRow(
+            "First Visits",
+            summary.firstVisits
+          )}
+
+          ${financeRow(
+            "Revisits",
+            summary.revisits
+          )}
+
+        </div>
+
+      </div>
+
+    `;
+
+  }
+
+
+  if(tab === "budget"){
+
+    content = `
+
+      <div class="card">
+
+        ${table(
+          [
+            "Budget ID",
+            "Category",
+            "Subcategory",
+            "Budget",
+            "Budget + GST"
+          ],
+
+          data.budget.map(row => [
+
+            esc(row["Budget ID"]),
+            esc(row["Main Category"]),
+            esc(
+              row["Construction Category"] ||
+              "—"
+            ),
+            money(row["Budget"]),
+            money(row["Budget With GST"])
+
+          ])
+        )}
+
+      </div>
+
+    `;
+
+  }
+
+
+  if(tab === "workorders"){
+
+    content = `
+
+      <div class="card">
+
+        ${table(
+          [
+            "WO ID",
+            "Vendor",
+            "Description",
+            "Value",
+            "Timeline",
+            "Status"
+          ],
+
+          data.workOrders.map(row => [
+
+            esc(row["WO ID"]),
+            esc(row["Vendor"]),
+            esc(row["Description"]),
+            money(row["WO Value"]),
+            esc(row["Timeline"]),
+            badge(row["Status"])
+
+          ])
+        )}
+
+      </div>
+
+    `;
+
+  }
+
+
+  if(tab === "payments"){
+
+    content = `
+
+      <div class="card">
+
+        <div class="section-head">
+          <h2>Payment Plan</h2>
+        </div>
+
+        ${table(
+          [
+            "WO",
+            "Vendor",
+            "Milestone",
+            "Due",
+            "Planned",
+            "Actual",
+            "Balance",
+            "Status"
+          ],
+
+          data.paymentPlan.map(row => [
+
+            esc(row["WO ID"]),
+            esc(row["Vendor"]),
+            esc(row["Milestone"]),
+            esc(row["Due Month"]),
+            money(row["Planned Amount"]),
+            money(row["Actual Paid"]),
+            money(row["Balance"]),
+            badge(row["Status"])
+
+          ])
+        )}
+
+      </div>
+
+      <div class="section">
+
+        <div class="card">
+
+          <div class="section-head">
+            <h2>Actual Payments</h2>
+          </div>
+
+          ${table(
+            [
+              "Date",
+              "WO",
+              "Vendor",
+              "Category",
+              "Amount",
+              "Mode",
+              "Status"
+            ],
+
+            data.payments.map(row => [
+
+              esc(row["Payment Date"]),
+              esc(row["WO ID"] || "—"),
+              esc(row["Vendor"]),
+              esc(row["Category"]),
+              money(row["Amount"]),
+              esc(row["Payment Mode"]),
+              badge(row["Status"])
+
+            ])
+          )}
+
+        </div>
+
+      </div>
+    `;
+
+  }
+
+
+  if(tab === "site"){
+
+    content = `
+
+      <div class="card">
+
+        <div class="section-head">
+
+          <h2>Unit & Site Status</h2>
+
+          <span class="sub">
+            ${data.units.length} units
+          </span>
+
+        </div>
+
+        ${table(
+          [
+            "Unit",
+            "Area",
+            "Value",
+            "Availability",
+            "Customer",
+            "Stage",
+            "Status",
+            "Target",
+            "Delay"
+          ],
+
+          data.units.map(row => [
+
+            esc(row.unitId),
+
+            num(row.areaSqft)
+              .toLocaleString("en-IN"),
+
+            money(row.unitValue),
+
+            badge(row.availabilityStatus),
+
+            esc(row.customer || "—"),
+
+            esc(row.currentStage || "—"),
+
+            badge(row.stageStatus),
+
+            esc(row.stageTargetDate || "—"),
+
+            esc(row.delayDays || 0)
+
+          ])
+        )}
+
+      </div>
+
+    `;
+
+  }
+
+
+  if(tab === "sales"){
+
+    content = `
+
+      <div class="section grid-2">
+
+        <div class="card">
+
+          <div class="section-head">
+
+            <h2>Leads</h2>
+
+            <span class="sub">
+              ${data.leads.length}
+            </span>
+
+          </div>
+
+          ${table(
+            [
+              "Lead ID",
+              "Name",
+              "Source",
+              "Subsource",
+              "Salesperson"
+            ],
+
+            data.leads.map(row => [
+
+              esc(row["Lead ID"]),
+
+              esc(
+                row["Customer Name"] ||
+                row["Name"] ||
+                "—"
+              ),
+
+              esc(
+                row["Source"] ||
+                "—"
+              ),
+
+              esc(
+                row["Subsource"] ||
+                "—"
+              ),
+
+              esc(
+                row["Salesperson"] ||
+                "—"
+              )
+
+            ])
+          )}
+
+        </div>
+
+
+        <div class="card">
+
+          <div class="section-head">
+
+            <h2>Site Visits</h2>
+
+            <span class="sub">
+              ${data.siteVisits.length}
+            </span>
+
+          </div>
+
+          ${table(
+            [
+              "Date",
+              "Lead",
+              "Type",
+              "Salesperson"
+            ],
+
+            data.siteVisits.map(row => [
+
+              esc(
+                row["Visit Date"] ||
+                row["Date"] ||
+                "—"
+              ),
+
+              esc(row["Lead ID"]),
+
+              esc(row["Visit Type"]),
+
+              esc(
+                row["Salesperson"] ||
+                "—"
+              )
+
+            ])
+          )}
+
+        </div>
+
+      </div>
+
+      <div class="section">
+
+        <div class="card">
+
+          <div class="section-head">
+
+            <h2>Bookings</h2>
+
+            <span class="sub">
+              ${data.bookings.length}
+            </span>
+
+          </div>
+
+          ${table(
+            [
+              "Date",
+              "Lead",
+              "Unit",
+              "Value",
+              "Status"
+            ],
+
+            data.bookings.map(row => [
+
+              esc(
+                row["Booking Date"] ||
+                row["Date"] ||
+                "—"
+              ),
+
+              esc(row["Lead ID"]),
+
+              esc(
+                row["Unit ID"] ||
+                "—"
+              ),
+
+              money(row["Booking Value"]),
+
+              badge(row["Status"])
+
+            ])
+          )}
+
+        </div>
+
+      </div>
+
+    `;
+
+  }
+
+
+  document.getElementById("appRoot").innerHTML =
+
+    head(
+      project["Project Name"],
+      `${project["Project Status"]} · ${project["Location"]} · Completion ${project["Expected Completion"]}`,
+
+      `<button class="btn" onclick="projects()">
+        ← Projects
+      </button>
+
+      <button
+        class="btn"
+        onclick="openProject('${esc(project["Project ID"])}')"
+      >
+        ↻ Refresh
+      </button>`
+    )
+
+    +
+
+    `<div class="tabs">
+
+      ${tabs.map(item => `
+
+        <button
+          class="tab ${item[0] === tab ? "active" : ""}"
+          onclick="renderProject('${item[0]}')"
+        >
+          ${item[1]}
+        </button>
+
+      `).join("")}
+
+    </div>`
+
+    +
+
+    content;
+
+}
+
+
+/* ==================================================
+   APPROVALS
+   PROJECT FILTER
+   ================================================== */
+
+async function approvals(projectId="ALL"){
+
+  setActive("approvals");
+  destroyChart();
+
+  try{
+
+    if(!cache.approvals){
+
+      const result =
+        await api("approvals");
+
+      cache.approvals =
+        result.data || [];
+    }
+
+    if(!cache.projects){
+
+      const result =
+        await api("projectList");
+
+      cache.projects =
+        result.data || [];
+    }
+
+    let records =
+      [...cache.approvals];
+
+    if(projectId !== "ALL"){
+
+      records =
+        records.filter(row =>
+          String(
+            row["Project ID"]
+          ) === String(projectId)
+        );
+
+    }
+
+    const pending =
+      records.filter(row =>
+        String(row.Status)
+          .toLowerCase() === "pending"
+      ).length;
+
+    const completed =
+      records.filter(row =>
+        ["completed","done"]
+          .includes(
+            String(row.Status)
+              .toLowerCase()
+          )
+      ).length;
+
+    const selectedProject =
+      projectId === "ALL"
+        ? "All Projects"
+        : (
+            cache.projects.find(
+              p => p.projectId === projectId
+            )?.projectName ||
+            projectId
+          );
+
+    document.getElementById("appRoot").innerHTML =
+
+      head(
+        "Approvals",
+        "Track RERA, DTCP, Local Body and other approvals.",
+        `<button class="btn" onclick="approvals('${projectId}')">
+          ↻ Refresh
+        </button>`
+      )
+
+      +
+
+      projectFilter(
+        projectId,
+        "approvals"
+      )
+
+      +
+
+      `<div class="grid-4">
+
+        ${kpi(
+          "Total",
+          records.length,
+          selectedProject
+        )}
+
+        ${kpi(
+          "Pending",
+          pending,
+          "Need action"
+        )}
+
+        ${kpi(
+          "Completed",
+          completed,
+          "Done"
+        )}
+
+        ${kpi(
+          "Other",
+          Math.max(
+            0,
+            records.length -
+            pending -
+            completed
+          ),
+          "Other status"
+        )}
+
+      </div>`
+
+      +
+
+      `<div class="section">
+
+        <div class="card">
+
+          ${table(
+            [
+              "Project",
+              "Approval",
+              "Authority",
+              "Status",
+              "Target Date",
+              "Completion Date"
+            ],
+
+            records.map(row => [
+
+              esc(
+                row["Project Name"] ||
+                row["Project ID"] ||
+                "—"
+              ),
+
+              esc(
+                row["Approval Type"] ||
+                "—"
+              ),
+
+              esc(
+                row["Authority"] ||
+                "—"
+              ),
+
+              badge(row.Status),
+
+              esc(
+                row["Target Date"] ||
+                "—"
+              ),
+
+              esc(
+                row["Completion Date"] ||
+                "—"
+              )
+
+            ])
+          )}
+
+        </div>
+
+      </div>`;
+
+  }catch(error){
+
+    showError(error);
+
+  }
+
+}
+
+
+/* ==================================================
+   FINANCE
+   PROJECT FILTER
+   ================================================== */
+
+async function finance(projectId="ALL"){
+
+  setActive("finance");
+  destroyChart();
+
+  try{
+
+    if(!cache.projects){
+
+      const result =
+        await api("projectList");
+
+      cache.projects =
+        result.data || [];
+    }
+
+    let financeData = null;
+
+    if(projectId === "ALL"){
+
+      financeData =
+        await api("finance");
+
+    }else{
+
+      /*
+        Project-specific finance is taken from the
+        project endpoint. This gives:
+        - project budget
+        - planned payments
+        - actual project payments
+        - remaining budget
+        - work order value
+      */
+
+      financeData =
+        await api(
+          "project",
+          {id:projectId}
+        );
+    }
+
+    const selectedProject =
+      projectId === "ALL"
+        ? "All Projects"
+        : (
+            cache.projects.find(
+              p => p.projectId === projectId
+            )?.projectName ||
+            projectId
+          );
+
+    if(projectId === "ALL"){
+
+      document.getElementById("appRoot").innerHTML =
+
+        head(
+          "Finance",
+          "Company-wide cash position and project-linked finance.",
+          `<button
+            class="btn"
+            onclick="finance('${projectId}')"
+          >
+            ↻ Refresh
+          </button>`
+        )
+
+        +
+
+        projectFilter(
+          projectId,
+          "finance"
+        )
+
+        +
+
+        `<div class="grid-4">
+
+          ${kpi(
+            "Collections",
+            money(financeData.collections),
+            selectedProject
+          )}
+
+          ${kpi(
+            "Project Payments",
+            money(financeData.projectPayments),
+            "Cash outflow"
+          )}
+
+          ${kpi(
+            "Marketing Payments",
+            money(financeData.marketingPayments),
+            "Cash outflow"
+          )}
+
+          ${kpi(
+            "Net Cash",
+            money(financeData.netCashPosition),
+            financeData.netCashPosition < 0
+              ? "Negative"
+              : "Positive"
+          )}
+
+        </div>
+
+        <div class="section grid-2">
+
+          <div class="card">
+
+            <div class="section-head">
+
+              <h2>Expense Mix</h2>
+
+            </div>
+
+            <div class="chartbox">
+              <canvas id="financeChart"></canvas>
+            </div>
+
+          </div>
+
+          <div class="card">
+
+            <div class="section-head">
+              <h2>Cash Summary</h2>
+            </div>
+
+            ${financeRow(
+              "Collections",
+              money(financeData.collections)
+            )}
+
+            ${financeRow(
+              "Project Payments",
+              money(financeData.projectPayments)
+            )}
+
+            ${financeRow(
+              "Marketing Payments",
+              money(financeData.marketingPayments)
+            )}
+
+            ${financeRow(
+              "Company Expenses",
+              money(financeData.companyExpenses)
+            )}
+
+            ${financeRow(
+              "Total Expenses",
+              money(financeData.totalExpenses)
+            )}
+
+            ${financeRow(
+              "Net Cash Position",
+              money(financeData.netCashPosition)
+            )}
+
+          </div>
+
+        </div>
+
+        <div class="section">
+
+          <div class="notice">
+
+            All Projects includes company-wide expenses.
+            CORP expenses remain in the company-level view.
+
+          </div>
+
+        </div>`;
+
+      const canvas =
+        document.getElementById("financeChart");
+
+      activeChart =
+        new Chart(
+          canvas,
+          {
+            type:"doughnut",
+
+            data:{
+              labels:[
+                "Project Payments",
+                "Marketing Payments",
+                "Company Expenses"
+              ],
+
+              datasets:[
+                {
+                  data:[
+                    financeData.projectPayments,
+                    financeData.marketingPayments,
+                    financeData.companyExpenses
+                  ]
+                }
+              ]
+            },
+
+            options:{
+              responsive:true,
+              maintainAspectRatio:false,
+              cutout:"68%",
+
+              plugins:{
+                legend:{
+                  position:"bottom"
+                }
+              }
+            }
+          }
+        );
+
+    }else{
+
+      const summary =
+        financeData.summary;
+
+      document.getElementById("appRoot").innerHTML =
+
+        head(
+          selectedProject + " — Finance",
+          "Project-specific commercial and payment position.",
+          `<button
+            class="btn"
+            onclick="finance('${projectId}')"
+          >
+            ↻ Refresh
+          </button>`
+        )
+
+        +
+
+        projectFilter(
+          projectId,
+          "finance"
+        )
+
+        +
+
+        `<div class="grid-4">
+
+          ${kpi(
+            "Budget",
+            money(summary.budget),
+            "Budget with GST"
+          )}
+
+          ${kpi(
+            "Planned Payments",
+            money(summary.plannedPayments),
+            "Payment plan"
+          )}
+
+          ${kpi(
+            "Actual Payments",
+            money(summary.actualPayments),
+            "Paid"
+          )}
+
+          ${kpi(
+            "Remaining Budget",
+            money(summary.remainingBudget),
+            "Current balance"
+          )}
+
+        </div>
+
+        <div class="section grid-2">
+
+          <div class="card">
+
+            <div class="section-head">
+              <h2>Work Orders</h2>
+            </div>
+
+            ${financeRow(
+              "Work Orders",
+              summary.workOrderCount
+            )}
+
+            ${financeRow(
+              "Work Order Value",
+              money(summary.workOrderValue)
+            )}
+
+            ${financeRow(
+              "Planned Payments",
+              money(summary.plannedPayments)
+            )}
+
+            ${financeRow(
+              "Actual Payments",
+              money(summary.actualPayments)
+            )}
+
+          </div>
+
+          <div class="card">
+
+            <div class="section-head">
+              <h2>Project Cash Position</h2>
+            </div>
+
+            ${financeRow(
+              "Budget",
+              money(summary.budget)
+            )}
+
+            ${financeRow(
+              "Actual Paid",
+              money(summary.actualPayments)
+            )}
+
+            ${financeRow(
+              "Remaining",
+              money(summary.remainingBudget)
+            )}
+
+            ${financeRow(
+              "Booking Value",
+              money(summary.bookingValue)
+            )}
+
+          </div>
+
+        </div>
+
+        <div class="section">
+
+          <div class="card">
+
+            <div class="section-head">
+              <h2>Payment Plan</h2>
+            </div>
+
+            ${table(
+              [
+                "WO",
+                "Vendor",
+                "Milestone",
+                "Due",
+                "Planned",
+                "Actual",
+                "Balance",
+                "Status"
+              ],
+
+              financeData.paymentPlan.map(row => [
+
+                esc(row["WO ID"]),
+                esc(row["Vendor"]),
+                esc(row["Milestone"]),
+                esc(row["Due Month"]),
+                money(row["Planned Amount"]),
+                money(row["Actual Paid"]),
+                money(row["Balance"]),
+                badge(row["Status"])
+
+              ])
+            )}
+
+          </div>
+
+        </div>
+
+        <div class="section">
+
+          <div class="notice">
+
+            Project filter uses the project-level payment
+            tracker. Company-wide and Marketing cash flows
+            remain in the All Projects view.
+
+          </div>
+
+        </div>`;
+    }
+
+  }catch(error){
+
+    showError(error);
+
+  }
+
+}
+
+
+/* ==================================================
+   MARKETING
+   PROJECT FILTER
+   ================================================== */
+
+async function marketing(projectId="ALL"){
+
+  setActive("marketing");
+  destroyChart();
+
+  try{
+
+    const [
+      leadsResult,
+      visitsResult,
+      projectListResult
+    ] =
+    await Promise.all([
+      api("leads"),
+      api("siteVisits"),
+      cache.projects
+        ? Promise.resolve({
+            data:cache.projects
+          })
+        : api("projectList")
+    ]);
+
+    cache.projects =
+      projectListResult.data || [];
+
+    cache.leads =
+      leadsResult.data || [];
+
+    cache.visits =
+      visitsResult.data || [];
+
+    let leads =
+      [...cache.leads];
+
+    let visits =
+      [...cache.visits];
+
+    if(projectId !== "ALL"){
+
+      leads =
+        leads.filter(row =>
+          String(row["Project ID"]) ===
+          String(projectId)
+        );
+
+      visits =
+        visits.filter(row =>
+          String(row["Project ID"]) ===
+          String(projectId)
+        );
+
+    }
+
+    const sources = {};
+
+    leads.forEach(row => {
+
+      const source =
+        row["Source"] ||
+        row["Lead Source"] ||
+        "Unknown";
+
+      sources[source] =
+        (sources[source] || 0) + 1;
+
+    });
+
+    const sourceRows =
+      Object.entries(sources)
+        .sort((a,b) => b[1] - a[1])
+        .map(([source,count]) => [
+          esc(source),
+          count
+        ]);
+
+    const firstVisits =
+      visits.filter(row =>
+        String(row["Visit Type"])
+          .toLowerCase() === "first visit"
+      ).length;
+
+    const revisits =
+      visits.filter(row =>
+        String(row["Visit Type"])
+          .toLowerCase() === "revisit"
+      ).length;
+
+    const selectedProject =
+      projectId === "ALL"
+        ? "All Projects"
+        : (
+            cache.projects.find(
+              p => p.projectId === projectId
+            )?.projectName ||
+            projectId
+          );
+
+    document.getElementById("appRoot").innerHTML =
+
+      head(
+        "Marketing",
+        "Lead source and site-visit performance.",
+        `<button
+          class="btn"
+          onclick="marketing('${projectId}')"
+        >
+          ↻ Refresh
+        </button>`
+      )
+
+      +
+
+      projectFilter(
+        projectId,
+        "marketing"
+      )
+
+      +
+
+      `<div class="grid-4">
+
+        ${kpi(
+          "Leads",
+          leads.length,
+          selectedProject
+        )}
+
+        ${kpi(
+          "Site Visits",
+          visits.length,
+          "Total visits"
+        )}
+
+        ${kpi(
+          "First Visits",
+          firstVisits,
+          "New prospects"
+        )}
+
+        ${kpi(
+          "Revisits",
+          revisits,
+          "Repeat visits"
+        )}
+
+      </div>
+
+      <div class="section grid-2">
+
+        <div class="card">
+
+          <div class="section-head">
+            <h2>Lead Sources</h2>
+          </div>
+
+          ${table(
+            [
+              "Source",
+              "Leads"
+            ],
+            sourceRows
+          )}
+
+        </div>
+
+        <div class="card">
+
+          <div class="section-head">
+            <h2>Marketing Spend</h2>
+          </div>
+
+          <div class="notice">
+
+            Marketing Budget, GTM Calendar and Marketing
+            Payment Tracker are in the database.
+
+            The current API does not yet expose these
+            detailed marketing tables, so no figures are
+            invented here.
+
+          </div>
+
+        </div>
+
+      </div>`;
+
+  }catch(error){
+
+    showError(error);
+
+  }
+
+}
+
+
+/* ==================================================
+   PRESALES
+   ================================================== */
+
+async function presales(){
+
+  setActive("presales");
+  destroyChart();
+
+  try{
+
+    const [
+      leadsResult,
+      visitsResult
+    ] =
+    await Promise.all([
+      api("leads"),
+      api("siteVisits")
+    ]);
+
+    document.getElementById("appRoot").innerHTML =
+
+      head(
+        "Pre-Sales",
+        "Lead and site-visit operating view."
+      )
+
+      +
+
+      `<div class="grid-4">
+
+        ${kpi(
+          "Leads",
+          leadsResult.count,
+          "Assigned funnel"
+        )}
+
+        ${kpi(
+          "Site Visits",
+          visitsResult.count,
+          "Conducted"
+        )}
+
+        ${kpi(
+          "First Visits",
+          visitsResult.summary.firstVisits,
+          "New visits"
+        )}
+
+        ${kpi(
+          "Revisits",
+          visitsResult.summary.revisits,
+          "Repeat visits"
+        )}
+
+      </div>
+
+      <div class="section grid-2">
+
+        <div class="card">
+
+          <div class="section-head">
+            <h2>Recent Site Visits</h2>
+          </div>
+
+          ${table(
+            [
+              "Date",
+              "Lead",
+              "Project",
+              "Type",
+              "Salesperson"
+            ],
+
+            (visitsResult.data || [])
+              .slice(-25)
+              .reverse()
+              .map(row => [
+
+                esc(
+                  row["Visit Date"] ||
+                  row["Date"] ||
+                  "—"
+                ),
+
+                esc(row["Lead ID"]),
+
+                esc(
+                  row["Project Name"] ||
+                  row["Project ID"]
+                ),
+
+                esc(row["Visit Type"]),
+
+                esc(
+                  row["Salesperson"] ||
+                  "—"
+                )
+
+              ])
+          )}
+
+        </div>
+
+        <div class="card">
+
+          <div class="section-head">
+            <h2>Daily Calling</h2>
+          </div>
+
+          <div class="notice">
+
+            The database contains the Presales Calling
+            table. A dedicated API endpoint is needed to
+            show its complete calling report here.
+
+          </div>
+
+        </div>
+
+      </div>`;
+
+  }catch(error){
+
+    showError(error);
+
+  }
+
+}
+
+
+/* ==================================================
+   SALES
+   PROJECT FILTER
+   ================================================== */
+
+async function sales(projectId="ALL"){
+
+  setActive("sales");
+  destroyChart();
+
+  try{
+
+    const [
+      inventoryResult,
+      bookingsResult
+    ] =
+    await Promise.all([
+      api("inventory"),
+      api("bookings")
+    ]);
+
+    if(!cache.projects){
+
+      const projectsResult =
+        await api("projectList");
+
+      cache.projects =
+        projectsResult.data || [];
+    }
+
+    let inventory =
+      [...(inventoryResult.data || [])];
+
+    let bookings =
+      [...(bookingsResult.data || [])];
+
+    if(projectId !== "ALL"){
+
+      inventory =
+        inventory.filter(row =>
+          String(row["Project ID"]) ===
+          String(projectId)
+        );
+
+      bookings =
+        bookings.filter(row =>
+          String(row["Project ID"]) ===
+          String(projectId)
+        );
+
+    }
+
+    const activeBookings =
+      bookings.filter(row =>
+        String(row["Status"])
+          .toLowerCase() !== "cancelled"
+      );
+
+    const bookingValue =
+      activeBookings.reduce(
+        (sum,row) =>
+          sum + num(row["Booking Value"]),
+        0
+      );
+
+    const selectedProject =
+      projectId === "ALL"
+        ? "All Projects"
+        : (
+            cache.projects.find(
+              p => p.projectId === projectId
+            )?.projectName ||
+            projectId
+          );
+
+    const booked =
+      inventory.filter(row =>
+        String(row["Availability Status"])
+          .toLowerCase() === "booked"
+      ).length;
+
+    const available =
+      inventory.filter(row =>
+        String(row["Availability Status"])
+          .toLowerCase() === "available"
+      ).length;
+
+    const hold =
+      inventory.filter(row =>
+        String(row["Availability Status"])
+          .toLowerCase() === "hold"
+      ).length;
+
+    document.getElementById("appRoot").innerHTML =
+
+      head(
+        "Sales",
+        "Inventory and booking performance.",
+        `<button
+          class="btn"
+          onclick="sales('${projectId}')"
+        >
+          ↻ Refresh
+        </button>`
+      )
+
+      +
+
+      projectFilter(
+        projectId,
+        "sales"
+      )
+
+      +
+
+      `<div class="grid-4">
+
+        ${kpi(
+          "Units",
+          inventory.length,
+          selectedProject
+        )}
+
+        ${kpi(
+          "Booked",
+          booked,
+          "Units booked"
+        )}
+
+        ${kpi(
+          "Available",
+          available,
+          "Open inventory"
+        )}
+
+        ${kpi(
+          "Booking Value",
+          money(bookingValue),
+          `${activeBookings.length} active bookings`
+        )}
+
+      </div>
+
+      <div class="section grid-2">
+
+        <div class="card">
+
+          <div class="section-head">
+            <h2>Inventory</h2>
+          </div>
+
+          ${table(
+            [
+              "Unit",
+              "Project",
+              "Type",
+              "Status",
+              "Customer",
+              "Lead"
+            ],
+
+            inventory.map(row => [
+
+              esc(
+                row["Unit ID"]
+              ),
+
+              esc(
+                row["Project Name"] ||
+                row["Project ID"]
+              ),
+
+              esc(
+                row["Unit Type"]
+              ),
+
+              badge(
+                row["Availability Status"]
+              ),
+
+              esc(
+                row["Customer"] ||
+                "—"
+              ),
+
+              esc(
+                row["Lead ID"] ||
+                "—"
+              )
+
+            ])
+          )}
+
+        </div>
+
+        <div class="card">
+
+          <div class="section-head">
+            <h2>Bookings</h2>
+          </div>
+
+          ${table(
+            [
+              "Date",
+              "Lead",
+              "Project",
+              "Unit",
+              "Value",
+              "Status"
+            ],
+
+            bookings.map(row => [
+
+              esc(
+                row["Booking Date"] ||
+                row["Date"] ||
+                "—"
+              ),
+
+              esc(row["Lead ID"]),
+
+              esc(
+                row["Project Name"] ||
+                row["Project ID"]
+              ),
+
+              esc(
+                row["Unit ID"] ||
+                "—"
+              ),
+
+              money(
+                row["Booking Value"]
+              ),
+
+              badge(
+                row["Status"]
+              )
+
+            ])
+          )}
+
+        </div>
+
+      </div>`;
+
+  }catch(error){
+
+    showError(error);
+
+  }
+
+}
+
+
+/* ==================================================
+   CHANNEL PARTNERS
+   ================================================== */
+
+async function cp(){
+
+  setActive("cp");
+  destroyChart();
+
+  try{
+
+    const result =
+      await api("leads");
+
+    const leads =
+      result.data || [];
+
+    const partnerMap = {};
+
+    leads.forEach(row => {
+
+      const source =
+        row["CP"] ||
+        row["Channel Partner"] ||
+        "Unknown";
+
+      partnerMap[source] =
+        (partnerMap[source] || 0) + 1;
+
+    });
+
+    const rows =
+      Object.entries(partnerMap)
+        .sort((a,b) => b[1] - a[1])
+        .map(([name,count]) => [
+          esc(name),
+          count
+        ]);
+
+    document.getElementById("appRoot").innerHTML =
+
+      head(
+        "Channel Partners",
+        "Partner contribution from the common lead funnel."
+      )
+
+      +
+
+      `<div class="grid-4">
+
+        ${kpi(
+          "Lead Records",
+          leads.length,
+          "Available lead records"
+        )}
+
+        ${kpi(
+          "Partner / Source Values",
+          rows.length,
+          "Distinct values"
+        )}
+
+        ${kpi(
+          "CP Payout",
+          "—",
+          "API endpoint pending"
+        )}
+
+        ${kpi(
+          "CP Contribution",
+          "—",
+          "Detailed endpoint pending"
+        )}
+
+      </div>
+
+      <div class="section grid-2">
+
+        <div class="card">
+
+          <div class="section-head">
+            <h2>Partner Contribution</h2>
+          </div>
+
+          ${table(
+            [
+              "Partner / Source",
+              "Leads"
+            ],
+            rows
+          )}
+
+        </div>
+
+        <div class="card">
+
+          <div class="section-head">
+            <h2>CP Payout</h2>
+          </div>
+
+          <div class="notice">
+
+            CP master, payout and detailed contribution
+            tables are present in the database.
+
+            Their dedicated API endpoints can be added
+            later.
+
+          </div>
+
+        </div>
+
+      </div>`;
+
+  }catch(error){
+
+    showError(error);
+
+  }
+
+}
+
+
+/* ==================================================
+   CRM & COLLECTIONS
+   PROJECT FILTER
+   ================================================== */
+
+async function crm(projectId="ALL"){
+
+  setActive("crm");
+  destroyChart();
+
+  try{
+
+    if(!cache.dashboard){
+
+      cache.dashboard =
+        await api("dashboard");
+    }
+
+    if(!cache.projects){
+
+      const projectList =
+        await api("projectList");
+
+      cache.projects =
+        projectList.data || [];
+    }
+
+    let projectRows =
+      [...(cache.dashboard.projects || [])];
+
+    let bookings = [];
+
+    let bookingValue = 0;
+
+    let collections = 0;
+
+    if(projectId === "ALL"){
+
+      const bookingResult =
+        await api("bookings");
+
+      bookings =
+        bookingResult.data || [];
+
+      bookingValue =
+        bookingResult.totalBookingValue;
+
+      collections =
+        cache.dashboard.kpis.totalCollections;
+
+    }else{
+
+      const projectData =
+        await api(
+          "project",
+          {id:projectId}
+        );
+
+      bookings =
+        projectData.bookings || [];
+
+      bookingValue =
+        projectData.summary.bookingValue;
+
+      collections =
+        projectRows
+          .find(row =>
+            row.projectId === projectId
+          )?.collections || 0;
+
+      projectRows =
+        projectRows.filter(row =>
+          row.projectId === projectId
+        );
+
+    }
+
+    const activeBookings =
+      bookings.filter(row =>
+        String(row["Status"])
+          .toLowerCase() !== "cancelled"
+      );
+
+    const selectedProject =
+      projectId === "ALL"
+        ? "All Projects"
+        : (
+            cache.projects.find(
+              p => p.projectId === projectId
+            )?.projectName ||
+            projectId
+          );
+
+    document.getElementById("appRoot").innerHTML =
+
+      head(
+        "CRM & Collections",
+        "Bookings, collections and project-linked customer funnel.",
+        `<button
+          class="btn"
+          onclick="crm('${projectId}')"
+        >
+          ↻ Refresh
+        </button>`
+      )
+
+      +
+
+      projectFilter(
+        projectId,
+        "crm"
+      )
+
+      +
+
+      `<div class="grid-4">
+
+        ${kpi(
+          "Bookings",
+          activeBookings.length,
+          selectedProject
+        )}
+
+        ${kpi(
+          "Booking Value",
+          money(bookingValue),
+          "Active booking value"
+        )}
+
+        ${kpi(
+          "Collections",
+          money(collections),
+          "Collections"
+        )}
+
+        ${kpi(
+          "Project Count",
+          projectRows.length,
+          selectedProject
+        )}
+
+      </div>
+
+      <div class="section grid-2">
+
+        <div class="card">
+
+          <div class="section-head">
+            <h2>Project Collections</h2>
+          </div>
+
+          ${table(
+            [
+              "Project",
+              "Bookings",
+              "Booking Value",
+              "Collections"
+            ],
+
+            projectRows.map(row => [
+
+              esc(row.projectName),
+
+              num(row.bookings),
+
+              money(row.bookingValue),
+
+              money(row.collections)
+
+            ])
+          )}
+
+        </div>
+
+        <div class="card">
+
+          <div class="section-head">
+            <h2>Collection Target</h2>
+          </div>
+
+          <div class="notice">
+
+            CRM Targets and collection target-date logic
+            are present in the database.
+
+            The current API exposes collection totals,
+            while detailed target rows can be connected
+            through the next CRM API endpoint.
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="section">
+
+        <div class="card">
+
+          <div class="section-head">
+
+            <h2>Bookings</h2>
+
+            <span class="sub">
+              ${activeBookings.length}
+            </span>
+
+          </div>
+
+          ${table(
+            [
+              "Date",
+              "Lead",
+              "Project",
+              "Unit",
+              "Value",
+              "Status"
+            ],
+
+            bookings.map(row => [
+
+              esc(
+                row["Booking Date"] ||
+                row["Date"] ||
+                "—"
+              ),
+
+              esc(
+                row["Lead ID"]
+              ),
+
+              esc(
+                row["Project Name"] ||
+                row["Project ID"]
+              ),
+
+              esc(
+                row["Unit ID"] ||
+                "—"
+              ),
+
+              money(
+                row["Booking Value"]
+              ),
+
+              badge(
+                row["Status"]
+              )
+
+            ])
+          )}
+
+        </div>
+
+      </div>`;
+
+  }catch(error){
+
+    showError(error);
+
+  }
+
+}
+
+
+/* ==================================================
+   ERROR
+   ================================================== */
+
+function showError(error){
+
+  destroyChart();
+
+  document.getElementById("appRoot").innerHTML = `
+
+    <div class="error">
+
+      <b>Could not load this module.</b>
+
+      <br><br>
+
+      ${esc(error.message)}
+
     </div>
-    <canvas id="chart_${key}"></canvas>
-  </div>`;
-}
-function setTrendMode(key, mode){
-  trendState[key] = mode;
-  render(); // router re-renders the page and its charts, keeping button state in sync
-}
-function renderTrendChart(key, color){
-  const ctx = document.getElementById('chart_'+key);
-  if(!ctx) return;
-  const rows = trendState[key+'__rows'];
-  const field = trendState[key+'__field'];
-  const mode = trendState[key] || 'month';
-  const g = groupByPeriod(rows, field, mode);
-  if(charts[key]) charts[key].destroy();
-  if(!g.labels.length){ ctx.getContext('2d').font='12px Inter'; return; }
-  charts[key] = new Chart(ctx, {
-    type:'bar',
-    data:{ labels:g.labels, datasets:[{data:g.values, backgroundColor:color, borderRadius:2}] },
-    options:{ responsive:true, plugins:{legend:{display:false}}, scales:{ y:{beginAtZero:true, grid:{color:'#e6ded0'}}, x:{grid:{display:false}} } }
-  });
-}
 
-function renderSalesCharts(){
-  const s = store.vv.sales;
-  const palette = ['#5c6e4a','#a8543a','#7a4f96','#3d6f8f','#b5843a','#6b6459'];
-
-  // Real SiteVisit statuses: Lost, Cancle (sic), Booked, Cold, Warm, Hot
-  const svStatusCounts = countBy(s.siteVisits, 'Status', v=>String(v||'Unspecified').trim());
-  const ctxSVStatus = document.getElementById('chartSiteVisitStatus');
-  if(ctxSVStatus){
-    if(charts.svStatus) charts.svStatus.destroy();
-    charts.svStatus = new Chart(ctxSVStatus, {
-      type:'doughnut',
-      data:{ labels:Object.keys(svStatusCounts), datasets:[{data:Object.values(svStatusCounts), backgroundColor:palette}] },
-      options:{ responsive:true, plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:11}}}, title:{display:true,text:'By status',font:{size:12}}} }
-    });
-  }
-
-  const svSourceCounts = countBy(s.siteVisits, 'Source');
-  const ctxSVSource = document.getElementById('chartSiteVisitSource');
-  if(ctxSVSource){
-    if(charts.svSource) charts.svSource.destroy();
-    charts.svSource = new Chart(ctxSVSource, {
-      type:'bar',
-      data:{ labels:Object.keys(svSourceCounts), datasets:[{data:Object.values(svSourceCounts), backgroundColor:'#a8543a', borderRadius:2}] },
-      options:{ responsive:true, plugins:{legend:{display:false}, title:{display:true,text:'By source',font:{size:12}}}, scales:{ y:{beginAtZero:true, grid:{color:'#e6ded0'}}, x:{grid:{display:false}} } }
-    });
-  }
-
-  const leadSourceCounts = countBy(s.leads, 'source');
-  const ctxLeadSource = document.getElementById('chartLeadsSource');
-  if(ctxLeadSource){
-    if(charts.leadSource) charts.leadSource.destroy();
-    charts.leadSource = new Chart(ctxLeadSource, {
-      type:'doughnut',
-      data:{ labels:Object.keys(leadSourceCounts), datasets:[{data:Object.values(leadSourceCounts), backgroundColor:palette}] },
-      options:{ responsive:true, plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:11}}}, title:{display:true,text:'By source',font:{size:12}}} }
-    });
-  }
-
-  const leadStageCounts = countBy(s.leads, 'stage');
-  const ctxLeadStage = document.getElementById('chartLeadsStage');
-  if(ctxLeadStage){
-    if(charts.leadStage) charts.leadStage.destroy();
-    charts.leadStage = new Chart(ctxLeadStage, {
-      type:'bar',
-      data:{ labels:Object.keys(leadStageCounts), datasets:[{data:Object.values(leadStageCounts), backgroundColor:'#5c6e4a', borderRadius:2}] },
-      options:{ indexAxis:'y', responsive:true, plugins:{legend:{display:false}, title:{display:true,text:'By stage',font:{size:12}}}, scales:{ x:{beginAtZero:true, grid:{color:'#e6ded0'}}, y:{grid:{display:false}} } }
-    });
-  }
-
-  renderTrendChart('bookingsTrend', '#a8543a');
-  renderTrendChart('siteVisitTrend', '#5c6e4a');
-  renderTrendChart('leadsTrend', '#7a4f96');
-}
-
-/* ---------- INCENTIVE (kept simple, still useful for payouts) ---------- */
-function renderIncentiveDept(){
-  const rows = store.vv.rawSheets.Incentive_Targets || [
-    {Month:'Aug-24', Team:'Team A', Metric:'Bookings', Target:20, Achieved:16, Required:4},
-    {Month:'Aug-24', Team:'Team B', Metric:'Bookings', Target:18, Achieved:15, Required:3},
-  ];
-  const months = [...new Set(rows.map(r=>r.Month))];
-  const latestMonth = months[months.length-1];
-  const monthRows = rows.filter(r=>r.Month===latestMonth);
-
-  return `
-  <a class="back-link" href="#project/vista-villas">← Vista Villas</a>
-  <div class="hero-row"><div><h1>Incentive</h1><p>Latest month: ${latestMonth||'—'}</p></div></div>
-  <div class="panel">
-    <h3>Target vs achieved by team</h3>
-    <canvas id="chartIncentive"></canvas>
-    <div class="trace">Source: <span class="mono">Incentive_Targets${isSheetLive('Incentive_Targets')?' (live)':''}</span></div>
-  </div>
-  <div class="panel" style="margin-top:16px;">
-    <h3>All rows</h3>
-    ${genericTable(rows)}
-  </div>
   `;
-}
-function renderIncentiveChart(){
-  const rows = store.vv.rawSheets.Incentive_Targets || [
-    {Month:'Aug-24', Team:'Team A', Target:20, Achieved:16},
-    {Month:'Aug-24', Team:'Team B', Target:18, Achieved:15},
-  ];
-  const months = [...new Set(rows.map(r=>r.Month))];
-  const latestMonth = months[months.length-1];
-  const monthRows = rows.filter(r=>r.Month===latestMonth);
-  const ctx = document.getElementById('chartIncentive');
-  if(!ctx) return;
-  if(charts.incentive) charts.incentive.destroy();
-  charts.incentive = new Chart(ctx, {
-    type:'bar',
-    data:{ labels:monthRows.map(r=>r.Team), datasets:[
-      {label:'Target', data:monthRows.map(r=>Number(r.Target||0)), backgroundColor:'#d9d0c0', borderRadius:2},
-      {label:'Achieved', data:monthRows.map(r=>Number(r.Achieved||0)), backgroundColor:'#5c6e4a', borderRadius:2}
-    ]},
-    options:{ responsive:true, plugins:{legend:{position:'bottom', labels:{boxWidth:10,font:{size:11}}}}, scales:{ y:{beginAtZero:true, grid:{color:'#e6ded0'}}, x:{grid:{display:false}} } }
-  });
+
 }
 
-/* init */
-render();
-if(DATA_API_URL){
-  refreshFromApi();
-  setInterval(refreshFromApi, REFRESH_INTERVAL_MS);
-} else {
-  document.getElementById('lastUpdated').textContent = 'Mock data';
-}
+
+/* ==================================================
+   NAVIGATION
+   ================================================== */
+
+document
+  .querySelectorAll(".nav button")
+  .forEach(button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        const page =
+          button.dataset.page;
+
+        if(page === "home")
+          home();
+
+        else if(page === "projects")
+          projects();
+
+        else if(page === "approvals")
+          approvals();
+
+        else if(page === "finance")
+          finance();
+
+        else if(page === "marketing")
+          marketing();
+
+        else if(page === "presales")
+          presales();
+
+        else if(page === "sales")
+          sales();
+
+        else if(page === "cp")
+          cp();
+
+        else if(page === "crm")
+          crm();
+
+      }
+    );
+
+  });
+
+
+/* ==================================================
+   START
+   ================================================== */
+
+home();
+
 </script>
+
 </body>
 </html>
