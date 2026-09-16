@@ -723,7 +723,7 @@ function htmlTable(
 }
 
 
-function top(
+function pageHead(
   title,
   subtitle,
   extra=""
@@ -1221,7 +1221,7 @@ async function home(
 
   rootEl.innerHTML =
 
-    top(
+    pageHead(
       "Company Dashboard",
       "Overall performance across Earthen Spaces.",
 
@@ -1411,7 +1411,7 @@ async function home(
 
     rootEl.innerHTML =
 
-      top(
+      pageHead(
         "Company Dashboard",
         "Overall performance across Earthen Spaces.",
 
@@ -2181,7 +2181,7 @@ async function projects(fresh=false){
 
     root.innerHTML =
 
-      top(
+      pageHead(
         "Projects",
         "Project-wise performance and execution.",
 
@@ -3002,7 +3002,7 @@ function renderProject(
 
   root.innerHTML =
 
-    top(
+    pageHead(
       project["Project Name"],
 
       `${project["Project Status"]} · ${project["Location"]} · Completion ${project["Expected Completion"]}`,
@@ -3134,7 +3134,7 @@ async function approvals(
 
     root.innerHTML =
 
-      top(
+      pageHead(
         "Approvals",
         "Approval tracker with project and month-wise visibility.",
 
@@ -3485,7 +3485,7 @@ async function finance(
 
     root.innerHTML =
 
-      top(
+      pageHead(
         "Finance",
         "Company cash position with project filtering.",
 
@@ -3852,7 +3852,7 @@ async function marketing(
 
     root.innerHTML =
 
-      top(
+      pageHead(
         "Marketing",
         "Budget, spend, leads and GTM activity.",
 
@@ -4181,7 +4181,7 @@ async function presales(fresh=false){
 
     root.innerHTML =
 
-      top(
+      pageHead(
         "Pre-Sales",
         "Calling activity, connectivity and follow-ups.",
 
@@ -4460,7 +4460,7 @@ async function sales(
 
     root.innerHTML =
 
-      top(
+      pageHead(
         "Sales",
         "Inventory and booking details.",
 
@@ -4759,7 +4759,7 @@ async function cp(fresh=false){
 
     root.innerHTML =
 
-      top(
+      pageHead(
         "Channel Partners",
         "Contribution and payout tracker.",
 
@@ -5051,7 +5051,7 @@ async function crm(
 
     root.innerHTML =
 
-      top(
+      pageHead(
         "CRM & Collections",
         "Bookings, targets and actual collections.",
 
