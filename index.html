@@ -1,1000 +1,474 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
-
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0">
-
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Earthen Spaces Dashboard</title>
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-
-/* =========================================================
-   BASE
-   ========================================================= */
-
 :root{
-
-  --green:#17372f;
-  --green2:#2d604f;
-  --green3:#3f8067;
-
-  --paper:#f5f3ec;
-  --white:#ffffff;
-
-  --line:#e3e0d7;
-  --muted:#68746d;
-
-  --gold:#b38a47;
-  --red:#b9574c;
-  --blue:#5d829d;
-
-  --shadow:0 6px 22px rgba(23,55,47,.07);
-
+  --g:#17372f;
+  --g2:#2d604f;
+  --g3:#3f8067;
+  --p:#f5f3ec;
+  --w:#fff;
+  --l:#e3e0d7;
+  --m:#68746d;
+  --r:#b9574c;
+  --y:#906924;
+  --b:#4e7087;
+  --sh:0 6px 22px rgba(23,55,47,.07)
 }
 
-*{
-  box-sizing:border-box;
-}
+*{box-sizing:border-box}
 
 body{
-
   margin:0;
-
-  background:var(--paper);
-
-  color:var(--green);
-
-  font-family:
-    Inter,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-
+  background:var(--p);
+  color:var(--g);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif
 }
 
-button,
-select,
-input{
-
+button,select{
   font:inherit;
-
+  cursor:pointer
 }
-
-button{
-
-  cursor:pointer;
-
-}
-
-/* =========================================================
-   LAYOUT
-   ========================================================= */
 
 .app{
-
   min-height:100vh;
-
-  display:flex;
-
+  display:flex
 }
 
-.sidebar{
-
+.side{
   position:fixed;
-
-  left:0;
-  top:0;
-  bottom:0;
-
+  inset:0 auto 0 0;
   width:250px;
-
-  background:var(--green);
-
+  background:var(--g);
   color:#fff;
-
   padding:22px 15px;
-
-  overflow:auto;
-
+  overflow:auto
 }
 
 .brand{
-
   padding:5px 12px 23px;
-
-  border-bottom:
-    1px solid rgba(255,255,255,.12);
-
-  margin-bottom:15px;
-
+  border-bottom:1px solid #ffffff1f;
+  margin-bottom:15px
 }
 
 .brand h1{
-
   margin:0;
-
-  font-family:Georgia,serif;
-
-  font-size:27px;
-
-  font-weight:500;
-
-  line-height:.94;
-
+  font:500 27px/.94 Georgia,serif
 }
 
 .brand small{
-
   display:block;
-
   margin-top:10px;
-
   font-size:9px;
-
   letter-spacing:.14em;
-
-  opacity:.65;
-
+  opacity:.65
 }
 
 .nav button{
-
   width:100%;
-
   border:0;
-
   background:transparent;
-
   color:#dce9e3;
-
   text-align:left;
-
   padding:11px 13px;
-
   border-radius:8px;
-
-  margin:2px 0;
-
+  margin:2px 0
 }
 
 .nav button:hover,
 .nav button.active{
-
   background:#2b604f;
-
-  color:#fff;
-
+  color:#fff
 }
 
-.content{
-
+.main{
   margin-left:250px;
-
   width:calc(100% - 250px);
-
-  padding:27px 31px 55px;
-
+  padding:27px 31px 55px
 }
 
-/* =========================================================
-   TOP
-   ========================================================= */
-
-.topbar{
-
+.top{
   display:flex;
-
   justify-content:space-between;
-
   align-items:flex-end;
-
   gap:20px;
-
-  margin-bottom:20px;
-
+  margin-bottom:20px
 }
 
-.page-title{
-
+.title{
   margin:0 0 5px;
-
-  font-family:Georgia,serif;
-
-  font-size:34px;
-
-  font-weight:500;
-
+  font:500 34px Georgia,serif
 }
 
 .sub{
-
-  color:var(--muted);
-
+  color:var(--m)
 }
 
 .actions{
-
   display:flex;
-
   align-items:center;
-
   gap:9px;
-
-  flex-wrap:wrap;
-
+  flex-wrap:wrap
 }
 
 .btn,
 .select{
-
   background:#fff;
-
-  border:1px solid var(--line);
-
-  color:var(--green);
-
+  border:1px solid var(--l);
+  color:var(--g);
   border-radius:7px;
-
-  padding:9px 12px;
-
+  padding:9px 12px
 }
 
 .btn.primary{
-
-  background:var(--green);
-
+  background:var(--g);
   color:#fff;
-
-  border-color:var(--green);
-
+  border-color:var(--g)
 }
 
-.status{
-
+.live{
   display:flex;
-
   align-items:center;
-
   gap:6px;
-
-  color:var(--muted);
-
-  font-size:12px;
-
+  color:var(--m);
+  font-size:12px
 }
 
-.status i{
-
+.live i{
   width:7px;
   height:7px;
-
   border-radius:50%;
-
-  background:var(--green3);
-
+  background:var(--g3)
 }
 
-/* =========================================================
-   FILTER
-   ========================================================= */
-
-.filterbar{
-
-  display:flex;
-
-  align-items:center;
-
-  flex-wrap:wrap;
-
-  gap:9px;
-
-  margin-bottom:15px;
-
-}
-
-.filterbar label{
-
-  font-size:10px;
-
-  color:var(--muted);
-
-  text-transform:uppercase;
-
-  letter-spacing:.07em;
-
-}
-
-/* =========================================================
-   GRIDS
-   ========================================================= */
-
-.grid6{
-
+.grid{
   display:grid;
-
-  grid-template-columns:
-    repeat(6,1fr);
-
-  gap:11px;
-
+  gap:11px
 }
 
-.grid5{
-
-  display:grid;
-
-  grid-template-columns:
-    repeat(5,1fr);
-
-  gap:11px;
-
-}
-
-.grid4{
-
-  display:grid;
-
-  grid-template-columns:
-    repeat(4,1fr);
-
-  gap:11px;
-
-}
-
-.grid3{
-
-  display:grid;
-
-  grid-template-columns:
-    repeat(3,1fr);
-
-  gap:11px;
-
-}
-
-.grid2{
-
-  display:grid;
-
-  grid-template-columns:
-    1.25fr 1fr;
-
-  gap:12px;
-
-}
-
-/* =========================================================
-   CARDS
-   ========================================================= */
+.g6{grid-template-columns:repeat(6,1fr)}
+.g5{grid-template-columns:repeat(5,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g2{grid-template-columns:1.25fr 1fr}
 
 .card,
-.kpi{
-
-  background:var(--white);
-
-  border:1px solid var(--line);
-
+.kpi,
+.project{
+  background:#fff;
+  border:1px solid var(--l);
   border-radius:10px;
-
   padding:16px;
-
-  box-shadow:var(--shadow);
-
+  box-shadow:var(--sh)
 }
 
 .kpi label{
-
   display:block;
-
   font-size:10px;
-
-  color:var(--muted);
-
+  color:var(--m);
   text-transform:uppercase;
-
-  letter-spacing:.06em;
-
+  letter-spacing:.06em
 }
 
 .kpi b{
-
   display:block;
-
   margin-top:8px;
-
-  font-family:Georgia,serif;
-
-  font-size:24px;
-
+  font:24px Georgia,serif
 }
 
 .kpi small{
-
   display:block;
-
   margin-top:5px;
-
-  color:var(--muted);
-
-  font-size:11px;
-
+  color:var(--m);
+  font-size:11px
 }
 
-.section{
-
-  margin-top:19px;
-
+.sec{
+  margin-top:19px
 }
 
-.section-head{
-
-  display:flex;
-
-  justify-content:space-between;
-
-  align-items:center;
-
-  gap:10px;
-
-  margin-bottom:11px;
-
-}
-
-.section-head h2{
-
+.sec h2{
   margin:0;
-
-  font-family:Georgia,serif;
-
-  font-size:19px;
-
+  font:19px Georgia,serif
 }
 
-/* =========================================================
-   PROJECT CARDS
-   ========================================================= */
+.sec-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  margin-bottom:11px
+}
 
 .project-grid{
-
   display:grid;
-
-  grid-template-columns:
-    repeat(3,1fr);
-
-  gap:11px;
-
+  grid-template-columns:repeat(3,1fr);
+  gap:11px
 }
 
 .project{
-
-  background:#fff;
-
-  border:1px solid var(--line);
-
-  border-radius:10px;
-
-  padding:17px;
-
-  cursor:pointer;
-
+  cursor:pointer
 }
 
 .project:hover{
-
-  box-shadow:var(--shadow);
-
-  transform:translateY(-1px);
-
+  transform:translateY(-1px)
 }
 
-.project .eyebrow{
-
+.eyebrow{
   font-size:11px;
-
-  color:var(--muted);
-
+  color:var(--m)
 }
 
-.project .name{
-
+.pname{
   margin:6px 0 3px;
-
-  font-family:Georgia,serif;
-
-  font-size:21px;
-
-  font-weight:600;
-
+  font:600 21px Georgia,serif
 }
 
-.progress{
-
+.prog{
   height:7px;
-
   background:#ecebe5;
-
   border-radius:20px;
-
   overflow:hidden;
-
-  margin:14px 0;
-
+  margin:14px 0
 }
 
-.progress span{
-
+.prog span{
   display:block;
-
   height:100%;
-
-  background:var(--green3);
-
+  background:var(--g3)
 }
 
-.project-stats{
-
+.pstats{
   display:grid;
-
-  grid-template-columns:
-    repeat(3,1fr);
-
-  gap:8px;
-
+  grid-template-columns:repeat(3,1fr);
+  gap:8px
 }
 
-.project-stats small{
-
+.pstats small{
   font-size:10px;
-
-  color:var(--muted);
-
+  color:var(--m)
 }
 
-.project-stats strong{
-
+.pstats strong{
   display:block;
-
-  margin-top:3px;
-
+  margin-top:3px
 }
 
-/* =========================================================
-   TABLES
-   ========================================================= */
+.filter{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  flex-wrap:wrap;
+  margin-bottom:15px
+}
+
+.filter label{
+  font-size:10px;
+  color:var(--m);
+  text-transform:uppercase;
+  letter-spacing:.07em
+}
+
+.tabs{
+  display:flex;
+  gap:6px;
+  overflow:auto;
+  margin:12px 0 14px
+}
+
+.tab{
+  border:1px solid var(--l);
+  background:#fff;
+  color:var(--m);
+  padding:9px 12px;
+  border-radius:7px;
+  white-space:nowrap
+}
+
+.tab.active{
+  background:var(--g);
+  color:#fff;
+  border-color:var(--g)
+}
+
+.chart{
+  position:relative;
+  height:290px
+}
+
+.chart.tall{
+  height:340px
+}
+
+.row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding:10px 0;
+  border-bottom:1px solid #eeeae1;
+  font-size:12px
+}
+
+.row:last-child{
+  border:0
+}
 
 .table-wrap{
-
-  overflow:auto;
-
+  overflow:auto
 }
 
 table{
-
   width:100%;
-
   border-collapse:collapse;
-
-  font-size:12px;
-
+  font-size:12px
 }
 
 th,
 td{
-
   text-align:left;
-
   padding:9px 7px;
-
   border-bottom:1px solid #eeeae1;
-
-  white-space:nowrap;
-
+  white-space:nowrap
 }
 
 th{
-
   font-size:10px;
-
-  color:var(--muted);
-
+  color:var(--m);
   text-transform:uppercase;
-
-  letter-spacing:.05em;
-
+  letter-spacing:.05em
 }
-
-/* =========================================================
-   BADGES
-   ========================================================= */
 
 .badge{
-
   display:inline-block;
-
   padding:4px 8px;
-
   border-radius:20px;
-
   font-size:10px;
-
-  white-space:nowrap;
-
+  white-space:nowrap
 }
 
-.badge.good{
-
+.good{
   background:#e8f2ec;
-
-  color:#2e705a;
-
+  color:#2e705a
 }
 
-.badge.warn{
-
+.warn{
   background:#faf0dd;
-
-  color:#906924;
-
+  color:#906924
 }
 
-.badge.bad{
-
+.bad{
   background:#fae8e5;
-
-  color:#a34b43;
-
+  color:#a34b43
 }
 
-.badge.info{
-
+.info{
   background:#eaf0f4;
-
-  color:#4e7087;
-
+  color:#4e7087
 }
 
-/* =========================================================
-   CHARTS
-   ========================================================= */
-
-.chartbox{
-
-  position:relative;
-
-  height:290px;
-
-}
-
-.chartbox.tall{
-
-  height:340px;
-
-}
-
-/* =========================================================
-   TABS
-   ========================================================= */
-
-.tabs{
-
-  display:flex;
-
-  gap:6px;
-
-  overflow:auto;
-
-  margin:12px 0 14px;
-
-}
-
-.tab{
-
-  border:1px solid var(--line);
-
-  background:#fff;
-
-  color:var(--muted);
-
-  padding:9px 12px;
-
-  border-radius:7px;
-
-  white-space:nowrap;
-
-}
-
-.tab.active{
-
-  background:var(--green);
-
-  color:#fff;
-
-  border-color:var(--green);
-
-}
-
-/* =========================================================
-   ROWS / NOTICE
-   ========================================================= */
-
-.row{
-
-  display:flex;
-
-  justify-content:space-between;
-
-  align-items:center;
-
-  gap:12px;
-
-  padding:10px 0;
-
-  border-bottom:1px solid #eeeae1;
-
-  font-size:12px;
-
-}
-
-.row:last-child{
-
-  border-bottom:0;
-
-}
-
-.notice{
-
-  background:#f2efe6;
-
-  border:1px dashed #d8d0c1;
-
-  border-radius:8px;
-
-  padding:13px;
-
-  color:var(--muted);
-
-  line-height:1.55;
-
+.empty,
+.loading{
+  text-align:center;
+  padding:30px;
+  color:var(--m)
 }
 
 .error{
-
   background:#faebe8;
-
   border:1px solid #e5c4be;
-
   border-radius:9px;
-
   padding:14px;
-
-  color:#9b463d;
-
+  color:#9b463d
 }
-
-.empty{
-
-  padding:30px;
-
-  text-align:center;
-
-  color:var(--muted);
-
-}
-
-.progress-label{
-
-  font-size:11px;
-
-  color:var(--muted);
-
-}
-
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
 
 @media(max-width:1200px){
-
-  .grid6{
-
-    grid-template-columns:
-      repeat(3,1fr);
-
-  }
-
-  .grid5{
-
-    grid-template-columns:
-      repeat(3,1fr);
-
-  }
-
-  .grid4{
-
-    grid-template-columns:
-      repeat(2,1fr);
-
-  }
-
-  .grid2{
-
-    grid-template-columns:1fr;
-
-  }
-
-  .project-grid{
-
-    grid-template-columns:1fr;
-
-  }
-
+  .g6{grid-template-columns:repeat(3,1fr)}
+  .g5{grid-template-columns:repeat(3,1fr)}
+  .g4{grid-template-columns:repeat(2,1fr)}
+  .g2{grid-template-columns:1fr}
+  .project-grid{grid-template-columns:1fr}
 }
 
 @media(max-width:760px){
-
-  .sidebar{
-
+  .side{
     position:static;
-
     width:100%;
-
-    height:auto;
-
+    height:auto
   }
 
   .app{
-
-    display:block;
-
+    display:block
   }
 
-  .content{
-
+  .main{
     margin:0;
-
     width:100%;
-
-    padding:20px 14px;
-
+    padding:20px 14px
   }
 
   .nav{
-
     display:flex;
-
-    overflow:auto;
-
+    overflow:auto
   }
 
   .nav button{
-
-    min-width:max-content;
-
+    min-width:max-content
   }
 
-  .topbar{
-
+  .top{
     flex-direction:column;
-
-    align-items:flex-start;
-
+    align-items:flex-start
   }
 
-  .grid6,
-  .grid5,
-  .grid4{
-
-    grid-template-columns:
-      repeat(2,1fr);
-
+  .g6,
+  .g5,
+  .g4{
+    grid-template-columns:repeat(2,1fr)
   }
-
 }
-
 </style>
-
 </head>
 
 <body>
 
 <div class="app">
 
-<!-- =======================================================
-     SIDEBAR
-     ======================================================= -->
+  <aside class="side">
 
-<aside class="sidebar">
-
-  <div class="brand">
-
-    <h1>
-      EARTHEN<br>
-      SPACES
-    </h1>
-
-    <small>
-      BUILDING BETTER TOMORROWS
-    </small>
-
-  </div>
-
-  <nav class="nav">
-
-    <button
-      data-page="home"
-      class="active">
-      ⌂ &nbsp; Home
-    </button>
-
-    <button data-page="projects">
-      ▦ &nbsp; Projects
-    </button>
-
-    <button data-page="approvals">
-      ✓ &nbsp; Approvals
-    </button>
-
-    <button data-page="finance">
-      ₹ &nbsp; Finance
-    </button>
-
-    <button data-page="marketing">
-      ◈ &nbsp; Marketing
-    </button>
-
-    <button data-page="presales">
-      ☎ &nbsp; Pre-Sales
-    </button>
-
-    <button data-page="sales">
-      ▤ &nbsp; Sales
-    </button>
-
-    <button data-page="cp">
-      ♧ &nbsp; Channel Partners
-    </button>
-
-    <button data-page="crm">
-      ◎ &nbsp; CRM & Collections
-    </button>
-
-  </nav>
-
-</aside>
-
-
-<!-- =======================================================
-     MAIN
-     ======================================================= -->
-
-<main class="content">
-
-  <div id="appRoot">
-
-    <div class="sub">
-      Loading dashboard…
+    <div class="brand">
+      <h1>EARTHEN<br>SPACES</h1>
+      <small>BUILDING BETTER TOMORROWS</small>
     </div>
 
-  </div>
+    <nav class="nav">
+      <button data-page="home" class="active">⌂ &nbsp; Home</button>
+      <button data-page="projects">▦ &nbsp; Projects</button>
+      <button data-page="approvals">✓ &nbsp; Approvals</button>
+      <button data-page="finance">₹ &nbsp; Finance</button>
+      <button data-page="marketing">◈ &nbsp; Marketing</button>
+      <button data-page="presales">☎ &nbsp; Pre-Sales</button>
+      <button data-page="sales">▤ &nbsp; Sales</button>
+      <button data-page="cp">♧ &nbsp; Channel Partners</button>
+      <button data-page="crm">◎ &nbsp; CRM & Collections</button>
+    </nav>
 
-</main>
+  </aside>
+
+  <main class="main">
+    <div id="root">
+      <div class="loading">Loading dashboard…</div>
+    </div>
+  </main>
 
 </div>
 
-
 <script>
-
-/* =========================================================
-   API
-   ========================================================= */
 
 const API =
 "https://script.google.com/macros/s/AKfycbziG51HnCv6QSyq7EGmLQfOc4_zBLPMEAO10x0OwLnNtLroqbALgJDhvsCo2dpSda1pyw/exec";
@@ -1004,25 +478,19 @@ const API =
    STATE
    ========================================================= */
 
-const cache = {
+const state = {
 
   dashboard:null,
 
   projects:null,
 
-  inventory:null,
+  project:null,
 
-  approvals:null,
-
-  finance:null,
-
-  management:{},
-
-  project:null
+  mgmt:{}
 
 };
 
-let activeChart = null;
+let chart = null;
 
 
 /* =========================================================
@@ -1031,9 +499,7 @@ let activeChart = null;
 
 function esc(value){
 
-  return String(
-    value ?? ""
-  ).replace(
+  return String(value ?? "").replace(
     /[&<>"']/g,
     char => ({
       "&":"&amp;",
@@ -1047,13 +513,12 @@ function esc(value){
 }
 
 
-function num(value){
+function n(value){
 
-  const n =
-    Number(value);
+  value = Number(value);
 
-  return Number.isFinite(n)
-    ? n
+  return Number.isFinite(value)
+    ? value
     : 0;
 
 }
@@ -1061,17 +526,14 @@ function num(value){
 
 function money(value){
 
-  const n =
-    num(value);
+  value = n(value);
 
-  const abs =
-    Math.abs(n);
+  const abs = Math.abs(value);
 
   if(abs >= 10000000){
 
     return "₹" +
-      (n / 10000000)
-        .toFixed(2) +
+      (value / 10000000).toFixed(2) +
       " Cr";
 
   }
@@ -1079,37 +541,31 @@ function money(value){
   if(abs >= 100000){
 
     return "₹" +
-      (n / 100000)
-        .toFixed(1) +
+      (value / 100000).toFixed(1) +
       " L";
 
   }
 
   return "₹" +
-    Math.round(n)
-      .toLocaleString("en-IN");
+    Math.round(value).toLocaleString("en-IN");
 
 }
 
 
 function badge(status){
 
-  const s =
-    String(status || "")
-      .toLowerCase();
+  status = String(status ?? "");
 
-  let cls =
-    "info";
+  const s = status.toLowerCase();
+
+  let cls = "info";
 
   if(
     s.includes("pending") ||
     s.includes("planned") ||
-    s.includes("hold")
+    s.includes("partial")
   ){
-
-    cls =
-      "warn";
-
+    cls = "warn";
   }
 
   if(
@@ -1117,23 +573,19 @@ function badge(status){
     s.includes("completed") ||
     s.includes("paid") ||
     s.includes("active") ||
-    s.includes("ongoing")
+    s.includes("ongoing") ||
+    s.includes("achieved") ||
+    s.includes("booked")
   ){
-
-    cls =
-      "good";
-
+    cls = "good";
   }
 
   if(
-    s.includes("delay") ||
     s.includes("cancel") ||
+    s.includes("delay") ||
     s.includes("blocked")
   ){
-
-    cls =
-      "bad";
-
+    cls = "bad";
   }
 
   return `
@@ -1145,104 +597,77 @@ function badge(status){
 }
 
 
-async function api(
-  action,
-  params={}
-){
+function htmlTable(headers,rows){
 
-  const query =
-    new URLSearchParams({
+  if(!rows || !rows.length){
 
-      action,
-
-      ...params,
-
-      _:Date.now()
-
-    });
-
-  const response =
-    await fetch(
-      API +
-      "?" +
-      query.toString()
-    );
-
-  if(!response.ok){
-
-    throw new Error(
-      "API request failed (" +
-      response.status +
-      ")"
-    );
+    return `
+      <div class="empty">
+        No records found.
+      </div>
+    `;
 
   }
-
-  const result =
-    await response.json();
-
-  if(
-    result.success === false
-  ){
-
-    throw new Error(
-      result.error ||
-      "API error"
-    );
-
-  }
-
-  return result;
-
-}
-
-
-function setActive(page){
-
-  document
-    .querySelectorAll(
-      ".nav button"
-    )
-    .forEach(button => {
-
-      button.classList.toggle(
-        "active",
-        button.dataset.page ===
-        page
-      );
-
-    });
-
-}
-
-
-function destroyChart(){
-
-  if(activeChart){
-
-    activeChart.destroy();
-
-    activeChart =
-      null;
-
-  }
-
-}
-
-
-function head(
-  title,
-  subtitle,
-  extra=""
-){
 
   return `
 
-    <div class="topbar">
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+          <tr>
+            ${
+              headers
+                .map(
+                  h => `<th>${esc(h)}</th>`
+                )
+                .join("")
+            }
+          </tr>
+        </thead>
+
+        <tbody>
+
+          ${
+            rows
+              .map(
+                row => `
+                  <tr>
+                    ${
+                      row
+                        .map(
+                          value =>
+                            `<td>${value}</td>`
+                        )
+                        .join("")
+                    }
+                  </tr>
+                `
+              )
+              .join("")
+          }
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  `;
+
+}
+
+
+function top(title,subtitle,extra=""){
+
+  return `
+
+    <div class="top">
 
       <div>
 
-        <h1 class="page-title">
+        <h1 class="title">
           ${esc(title)}
         </h1>
 
@@ -1256,7 +681,7 @@ function head(
 
         ${extra}
 
-        <span class="status">
+        <span class="live">
           <i></i>
           Live
         </span>
@@ -1270,11 +695,7 @@ function head(
 }
 
 
-function kpi(
-  label,
-  value,
-  note
-){
+function kpi(label,value,note=""){
 
   return `
 
@@ -1299,10 +720,7 @@ function kpi(
 }
 
 
-function financeRow(
-  label,
-  value
-){
+function row(label,value){
 
   return `
 
@@ -1323,141 +741,243 @@ function financeRow(
 }
 
 
-function table(
-  headers,
-  rows
-){
+function destroyChart(){
 
-  if(!rows || !rows.length){
+  if(chart){
 
-    return `
-      <div class="empty">
-        No records found.
-      </div>
-    `;
+    chart.destroy();
+
+    chart = null;
 
   }
 
-  return `
+}
 
-    <div class="table-wrap">
 
-      <table>
+function setActive(page){
 
-        <thead>
+  document
+    .querySelectorAll(".nav button")
+    .forEach(
+      button => {
 
-          <tr>
+        button.classList.toggle(
+          "active",
+          button.dataset.page === page
+        );
 
-            ${headers
-              .map(
-                h =>
-                  `<th>${esc(h)}</th>`
-              )
-              .join("")}
-
-          </tr>
-
-        </thead>
-
-        <tbody>
-
-          ${rows
-            .map(
-              row => `
-
-                <tr>
-
-                  ${row
-                    .map(
-                      value =>
-                        `<td>${value}</td>`
-                    )
-                    .join("")}
-
-                </tr>
-
-              `
-            )
-            .join("")}
-
-        </tbody>
-
-      </table>
-
-    </div>
-
-  `;
+      }
+    );
 
 }
 
 
 /* =========================================================
-   PROJECT FILTER
+   API CACHE
    ========================================================= */
+
+api.mem = {};
+
+const API_CACHE_TTL =
+  2 * 60 * 1000;
+
+
+async function api(
+  action,
+  params={},
+  force=false
+){
+
+  const key =
+    action +
+    "|" +
+    JSON.stringify(params);
+
+
+  if(
+    !force &&
+    api.mem[key]
+  ){
+
+    const saved =
+      api.mem[key];
+
+    if(
+      Date.now() -
+      saved.time <
+      API_CACHE_TTL
+    ){
+
+      return saved.data;
+
+    }
+
+  }
+
+
+  const query =
+    new URLSearchParams({
+
+      action,
+
+      ...params
+
+    });
+
+
+  if(force){
+
+    query.set(
+      "_",
+      Date.now()
+    );
+
+  }
+
+
+  const response =
+    await fetch(
+      API +
+      "?" +
+      query.toString()
+    );
+
+
+  if(!response.ok){
+
+    throw new Error(
+      "API request failed (" +
+      response.status +
+      ")"
+    );
+
+  }
+
+
+  const result =
+    await response.json();
+
+
+  if(
+    result.success === false
+  ){
+
+    throw new Error(
+      result.error ||
+      "API error"
+    );
+
+  }
+
+
+  api.mem[key] = {
+
+    time:
+      Date.now(),
+
+    data:
+      result
+
+  };
+
+
+  return result;
+
+}
+
+
+/* =========================================================
+   PROJECT DATA
+   ========================================================= */
+
+async function projectsList(){
+
+  if(state.projects){
+
+    return state.projects;
+
+  }
+
+  const result =
+    await api(
+      "projectList"
+    );
+
+
+  state.projects =
+    result.data ||
+    [];
+
+
+  return state.projects;
+
+}
+
 
 function projectOptions(
   selected="ALL"
 ){
 
-  const projects =
-    cache.projects || [];
-
   return `
 
     <option
       value="ALL"
-      ${selected === "ALL"
-        ? "selected"
-        : ""}
+      ${
+        selected === "ALL"
+          ? "selected"
+          : ""
+      }
     >
       All Projects
     </option>
 
-    ${projects
-      .map(
-        project => `
+  ` +
 
-          <option
-            value="${esc(
-              project["Project ID"]
-              || project.projectId
-            )}"
+  (
+    state.projects ||
+    []
+  )
+  .map(
+    project => {
 
-            ${
-              selected ===
-              (
-                project["Project ID"]
-                || project.projectId
-              )
-                ? "selected"
-                : ""
-            }
-          >
+      const id =
+        project["Project ID"] ||
+        project.projectId;
 
-            ${esc(
-              project["Project Name"]
-              || project.projectName
-            )}
+      const name =
+        project["Project Name"] ||
+        project.projectName;
 
-          </option>
+      return `
 
-        `
-      )
-      .join("")}
+        <option
+          value="${esc(id)}"
+          ${
+            selected === id
+              ? "selected"
+              : ""
+          }
+        >
+          ${esc(name)}
+        </option>
 
-  `;
+      `;
+
+    }
+  )
+  .join("");
 
 }
 
 
-function filterBar(
+function filter(
   selected,
   callback
 ){
 
   return `
 
-    <div class="filterbar">
+    <div class="filter">
 
       <label>
         Project
@@ -1470,15 +990,622 @@ function filterBar(
         "
       >
 
-        ${projectOptions(
-          selected
-        )}
+        ${projectOptions(selected)}
 
       </select>
 
     </div>
 
   `;
+
+}
+
+
+/* =========================================================
+   MANAGEMENT CACHE
+   ========================================================= */
+
+async function getMgmt(
+  projectId="ALL",
+  force=false
+){
+
+  const key =
+    projectId || "ALL";
+
+
+  if(
+    !force &&
+    state.mgmt[key]
+  ){
+
+    return state.mgmt[key];
+
+  }
+
+
+  const result =
+    await api(
+      "management",
+      {
+        id:key
+      },
+      force
+    );
+
+
+  state.mgmt[key] =
+    result;
+
+
+  return result;
+
+}
+
+
+/* =========================================================
+   HOME
+   ========================================================= */
+
+async function home(
+  force=false
+){
+
+  setActive("home");
+
+  destroyChart();
+
+
+  document.getElementById(
+    "root"
+  ).innerHTML = `
+
+    <div class="loading">
+      Loading dashboard…
+    </div>
+
+  `;
+
+
+  try{
+
+    const dashboard =
+      await api(
+        "dashboard",
+        {},
+        force
+      );
+
+
+    state.dashboard =
+      dashboard;
+
+
+    state.projects =
+      dashboard.projects ||
+      [];
+
+
+    const k =
+      dashboard.kpis ||
+      {};
+
+
+    const inv =
+      dashboard.inventory ||
+      {};
+
+
+    const finance =
+      dashboard.finance ||
+      {};
+
+
+    const monthly =
+      dashboard.monthly ||
+      {};
+
+
+    document.getElementById(
+      "root"
+    ).innerHTML =
+
+      top(
+        "Company Dashboard",
+        "Overall performance across Earthen Spaces.",
+
+        `
+          <button
+            class="btn"
+            onclick="home(true)"
+          >
+            ↻ Refresh
+          </button>
+        `
+      )
+
+      +
+
+      `
+
+        <div class="grid g6">
+
+          ${kpi(
+            "Projects",
+            k.totalProjects,
+            "Portfolio"
+          )}
+
+          ${kpi(
+            "Leads",
+            k.totalLeads,
+            "All sources"
+          )}
+
+          ${kpi(
+            "Site Visits",
+            k.totalSiteVisits,
+            `${k.firstVisits || 0} first · ${k.revisits || 0} revisit`
+          )}
+
+          ${kpi(
+            "Bookings",
+            k.totalBookings,
+            money(k.totalBookingValue)
+          )}
+
+          ${kpi(
+            "Collections",
+            money(k.totalCollections),
+            "CRM collections"
+          )}
+
+          ${kpi(
+            "Net Cash",
+            money(k.netCashPosition),
+            "Current position"
+          )}
+
+        </div>
+
+      `
+
+      +
+
+      `
+
+        <div class="sec">
+
+          <div class="sec-head">
+
+            <h2>
+              Projects Overview
+            </h2>
+
+            <span class="sub">
+              Click a project
+            </span>
+
+          </div>
+
+          <div class="project-grid">
+
+            ${
+              state.projects
+                .map(projectCard)
+                .join("")
+            }
+
+          </div>
+
+        </div>
+
+      `
+
+      +
+
+      `
+
+        <div class="sec grid g2">
+
+          <div class="card">
+
+            <div class="sec-head">
+
+              <h2>
+                Monthly Business Trend
+              </h2>
+
+              <span class="sub">
+                Leads · Visits · Bookings
+              </span>
+
+            </div>
+
+            <div class="chart">
+
+              <canvas id="trend"></canvas>
+
+            </div>
+
+          </div>
+
+
+          <div class="card">
+
+            <div class="sec-head">
+
+              <h2>
+                Inventory
+              </h2>
+
+              <span class="sub">
+                ${inv.total || 0} units
+              </span>
+
+            </div>
+
+            <div class="chart">
+
+              <canvas id="inventory"></canvas>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      `
+
+      +
+
+      `
+
+        <div class="sec grid g2">
+
+          <div class="card">
+
+            <div class="sec-head">
+
+              <h2>
+                Monthly Cash Flow
+              </h2>
+
+            </div>
+
+            <div class="chart">
+
+              <canvas id="cash"></canvas>
+
+            </div>
+
+          </div>
+
+
+          <div class="card">
+
+            <div class="sec-head">
+
+              <h2>
+                Finance Snapshot
+              </h2>
+
+            </div>
+
+            ${row(
+              "Collections",
+              money(finance.collections)
+            )}
+
+            ${row(
+              "Project Payments",
+              money(finance.projectPayments)
+            )}
+
+            ${row(
+              "Marketing Payments",
+              money(finance.marketingPayments)
+            )}
+
+            ${row(
+              "Company Expenses",
+              money(finance.companyExpenses)
+            )}
+
+            ${row(
+              "Total Expenses",
+              money(finance.totalExpenses)
+            )}
+
+          </div>
+
+        </div>
+
+      `;
+
+
+    /* ============================================
+       TREND CHART
+       ============================================ */
+
+    const months =
+      [
+        ...new Set(
+          [
+            ...(monthly.leads || [])
+              .map(x => x.month),
+
+            ...(monthly.visits || [])
+              .map(x => x.month),
+
+            ...(monthly.bookings || [])
+              .map(x => x.month)
+          ]
+        )
+      ].sort();
+
+
+    const leads =
+      Object.fromEntries(
+        (monthly.leads || [])
+          .map(
+            x => [
+              x.month,
+              x.count || 0
+            ]
+          )
+      );
+
+
+    const visits =
+      Object.fromEntries(
+        (monthly.visits || [])
+          .map(
+            x => [
+              x.month,
+              x.count || 0
+            ]
+          )
+      );
+
+
+    const bookings =
+      Object.fromEntries(
+        (monthly.bookings || [])
+          .map(
+            x => [
+              x.month,
+              x.count || 0
+            ]
+          )
+      );
+
+
+    chart =
+      new Chart(
+        document.getElementById(
+          "trend"
+        ),
+        {
+
+          type:"line",
+
+          data:{
+
+            labels:
+              months.map(monthLabel),
+
+            datasets:[
+
+              {
+                label:"Leads",
+
+                data:
+                  months.map(
+                    x =>
+                      leads[x] ||
+                      0
+                  ),
+
+                tension:.3
+
+              },
+
+              {
+                label:"Site Visits",
+
+                data:
+                  months.map(
+                    x =>
+                      visits[x] ||
+                      0
+                  ),
+
+                tension:.3
+
+              },
+
+              {
+                label:"Bookings",
+
+                data:
+                  months.map(
+                    x =>
+                      bookings[x] ||
+                      0
+                  ),
+
+                tension:.3
+
+              }
+
+            ]
+
+          },
+
+          options:{
+
+            responsive:true,
+
+            maintainAspectRatio:false,
+
+            plugins:{
+              legend:{
+                position:"bottom"
+              }
+            }
+
+          }
+
+        }
+      );
+
+
+    /* ============================================
+       INVENTORY
+       ============================================ */
+
+    new Chart(
+      document.getElementById(
+        "inventory"
+      ),
+      {
+
+        type:"doughnut",
+
+        data:{
+
+          labels:[
+            "Booked",
+            "Available",
+            "Hold",
+            "Blocked"
+          ],
+
+          datasets:[
+            {
+              data:[
+                inv.booked || 0,
+                inv.available || 0,
+                inv.hold || 0,
+                inv.blocked || 0
+              ]
+            }
+          ]
+
+        },
+
+        options:{
+
+          responsive:true,
+
+          maintainAspectRatio:false,
+
+          cutout:"68%",
+
+          plugins:{
+            legend:{
+              position:"bottom"
+            }
+          }
+
+        }
+
+      }
+    );
+
+
+    /* ============================================
+       CASH FLOW
+       ============================================ */
+
+    new Chart(
+      document.getElementById(
+        "cash"
+      ),
+      {
+
+        type:"bar",
+
+        data:{
+
+          labels:
+            (monthly.finance || [])
+              .map(x => x.label),
+
+          datasets:[
+
+            {
+              label:"Inflow",
+
+              data:
+                (monthly.finance || [])
+                  .map(
+                    x =>
+                      x.inflow ||
+                      0
+                  )
+
+            },
+
+            {
+              label:"Outflow",
+
+              data:
+                (monthly.finance || [])
+                  .map(
+                    x =>
+                      x.outflow ||
+                      0
+                  )
+
+            }
+
+          ]
+
+        },
+
+        options:{
+
+          responsive:true,
+
+          maintainAspectRatio:false,
+
+          plugins:{
+            legend:{
+              position:"bottom"
+            }
+          }
+
+        }
+
+      }
+    );
+
+
+    /*
+      IMPORTANT:
+      Load management AFTER Home is visible.
+    */
+
+    setTimeout(
+      () => {
+
+        getMgmt(
+          "ALL"
+        ).catch(
+          () => {}
+        );
+
+      },
+      300
+    );
+
+  }catch(error){
+
+    showError(error);
+
+  }
 
 }
 
@@ -1492,10 +1619,10 @@ function projectCard(
 ){
 
   const total =
-    num(project.units);
+    n(project.units);
 
   const booked =
-    num(project.bookedUnits);
+    n(project.bookedUnits);
 
   const percentage =
     total
@@ -1507,26 +1634,26 @@ function projectCard(
         )
       : 0;
 
+
+  const id =
+    project.projectId ||
+    project["Project ID"];
+
+
   return `
 
     <div
       class="project"
       onclick="
         openProject(
-          '${esc(
-            project.projectId ||
-            project["Project ID"]
-          )}'
+          '${esc(id)}'
         )
       "
     >
 
       <div class="eyebrow">
 
-        ${esc(
-          project.projectId ||
-          project["Project ID"]
-        )}
+        ${esc(id)}
 
         ·
 
@@ -1538,7 +1665,8 @@ function projectCard(
 
       </div>
 
-      <div class="name">
+
+      <div class="pname">
 
         ${esc(
           project.projectName ||
@@ -1546,6 +1674,7 @@ function projectCard(
         )}
 
       </div>
+
 
       <div class="sub">
 
@@ -1565,7 +1694,8 @@ function projectCard(
 
       </div>
 
-      <div class="progress">
+
+      <div class="prog">
 
         <span
           style="
@@ -1575,7 +1705,8 @@ function projectCard(
 
       </div>
 
-      <div class="project-stats">
+
+      <div class="pstats">
 
         <div>
 
@@ -1589,6 +1720,7 @@ function projectCard(
 
         </div>
 
+
         <div>
 
           <small>
@@ -1601,6 +1733,7 @@ function projectCard(
 
         </div>
 
+
         <div>
 
           <small>
@@ -1608,7 +1741,7 @@ function projectCard(
           </small>
 
           <strong>
-            ${num(project.leads)}
+            ${n(project.leads)}
           </strong>
 
         </div>
@@ -1623,638 +1756,60 @@ function projectCard(
 
 
 /* =========================================================
-   HOME
-   ========================================================= */
-
-async function home(){
-
-  setActive("home");
-
-  destroyChart();
-
-  document.getElementById(
-    "appRoot"
-  ).innerHTML =
-    `<div class="sub">
-      Loading live dashboard…
-    </div>`;
-
-  try{
-
-    const dashboard =
-      await api(
-        "dashboard"
-      );
-
-    cache.dashboard =
-      dashboard;
-
-    cache.projects =
-      (
-        dashboard.projects ||
-        []
-      );
-
-    const inventory =
-      dashboard.inventory;
-
-    const k =
-      dashboard.kpis;
-
-    const f =
-      dashboard.funnel;
-
-    const fin =
-      dashboard.finance;
-
-    document.getElementById(
-      "appRoot"
-    ).innerHTML =
-
-      head(
-        "Company Dashboard",
-        "Overall performance across Earthen Spaces.",
-        `<button
-          class="btn"
-          onclick="home()"
-        >
-          ↻ Refresh
-        </button>`
-      )
-
-      +
-
-      `<div class="grid6">
-
-        ${kpi(
-          "Projects",
-          k.totalProjects,
-          "Portfolio"
-        )}
-
-        ${kpi(
-          "Leads",
-          k.totalLeads,
-          "All sources"
-        )}
-
-        ${kpi(
-          "Site Visits",
-          k.totalSiteVisits,
-          `${k.firstVisits} first · ${k.revisits} revisit`
-        )}
-
-        ${kpi(
-          "Bookings",
-          k.totalBookings,
-          money(k.totalBookingValue)
-        )}
-
-        ${kpi(
-          "Collections",
-          money(k.totalCollections),
-          "CRM collections"
-        )}
-
-        ${kpi(
-          "Net Cash",
-          money(k.netCashPosition),
-          k.netCashPosition < 0
-            ? "Current position"
-            : "Positive position"
-        )}
-
-      </div>`
-
-      +
-
-      `<div class="section">
-
-        <div class="section-head">
-
-          <h2>
-            Projects Overview
-          </h2>
-
-          <span class="sub">
-            Click a project
-          </span>
-
-        </div>
-
-        <div class="project-grid">
-
-          ${cache.projects
-            .map(projectCard)
-            .join("")}
-
-        </div>
-
-      </div>`
-
-      +
-
-      `<div class="section grid2">
-
-        <div class="card">
-
-          <div class="section-head">
-
-            <h2>
-              Monthly Business Trend
-            </h2>
-
-            <span class="sub">
-              Leads · Visits · Bookings
-            </span>
-
-          </div>
-
-          <div class="chartbox">
-            <canvas
-              id="homeTrendChart">
-            </canvas>
-          </div>
-
-        </div>
-
-        <div class="card">
-
-          <div class="section-head">
-
-            <h2>
-              Inventory
-            </h2>
-
-            <span class="sub">
-              ${inventory.total} units
-            </span>
-
-          </div>
-
-          <div class="chartbox">
-            <canvas
-              id="homeInventoryChart">
-            </canvas>
-          </div>
-
-        </div>
-
-      </div>`
-
-      +
-
-      `<div class="section grid2">
-
-        <div class="card">
-
-          <div class="section-head">
-
-            <h2>
-              Monthly Cash Flow
-            </h2>
-
-            <span class="sub">
-              Inflow vs Outflow
-            </span>
-
-          </div>
-
-          <div class="chartbox">
-
-            <canvas
-              id="homeCashChart">
-            </canvas>
-
-          </div>
-
-        </div>
-
-        <div class="card">
-
-          <div class="section-head">
-
-            <h2>
-              Finance Snapshot
-            </h2>
-
-          </div>
-
-          ${financeRow(
-            "Collections",
-            money(
-              fin.collections
-            )
-          )}
-
-          ${financeRow(
-            "Project Payments",
-            money(
-              fin.projectPayments
-            )
-          )}
-
-          ${financeRow(
-            "Marketing Payments",
-            money(
-              fin.marketingPayments
-            )
-          )}
-
-          ${financeRow(
-            "Company Expenses",
-            money(
-              fin.companyExpenses
-            )
-          )}
-
-          ${financeRow(
-            "Total Expenses",
-            money(
-              fin.totalExpenses
-            )
-          )}
-
-        </div>
-
-      </div>`;
-
-
-    /* HOME TREND */
-
-    const monthly =
-      dashboard.monthly ||
-      {};
-
-    const leadMap =
-      {};
-
-    (
-      monthly.leads ||
-      []
-    ).forEach(row => {
-
-      leadMap[row.month] =
-        row.count || 0;
-
-    });
-
-
-    const visitMap =
-      {};
-
-    (
-      monthly.visits ||
-      []
-    ).forEach(row => {
-
-      visitMap[row.month] =
-        row.count || 0;
-
-    });
-
-
-    const bookingMap =
-      {};
-
-    (
-      monthly.bookings ||
-      []
-    ).forEach(row => {
-
-      bookingMap[row.month] =
-        row.count || 0;
-
-    });
-
-
-    const months =
-      Array.from(
-        new Set(
-          [
-            ...Object.keys(
-              leadMap
-            ),
-
-            ...Object.keys(
-              visitMap
-            ),
-
-            ...Object.keys(
-              bookingMap
-            )
-          ]
-        )
-      ).sort();
-
-
-    activeChart =
-      new Chart(
-        document.getElementById(
-          "homeTrendChart"
-        ),
-        {
-
-          type:"line",
-
-          data:{
-
-            labels:
-              months.map(
-                m =>
-                  monthLabel(m)
-              ),
-
-            datasets:[
-
-              {
-                label:"Leads",
-                data:
-                  months.map(
-                    m =>
-                      leadMap[m] || 0
-                  ),
-
-                tension:.3
-              },
-
-              {
-                label:"Site Visits",
-                data:
-                  months.map(
-                    m =>
-                      visitMap[m] || 0
-                  ),
-
-                tension:.3
-              },
-
-              {
-                label:"Bookings",
-                data:
-                  months.map(
-                    m =>
-                      bookingMap[m] || 0
-                  ),
-
-                tension:.3
-              }
-
-            ]
-
-          },
-
-          options:{
-
-            responsive:true,
-
-            maintainAspectRatio:false,
-
-            interaction:{
-              mode:"index",
-              intersect:false
-            },
-
-            plugins:{
-              legend:{
-                position:"bottom"
-              }
-            }
-
-          }
-
-        }
-
-      );
-
-
-    /* INVENTORY CHART */
-
-    new Chart(
-      document.getElementById(
-        "homeInventoryChart"
-      ),
-      {
-
-        type:"doughnut",
-
-        data:{
-
-          labels:[
-            "Booked",
-            "Available",
-            "Hold",
-            "Blocked"
-          ],
-
-          datasets:[
-            {
-              data:[
-                inventory.booked,
-                inventory.available,
-                inventory.hold,
-                inventory.blocked
-              ]
-            }
-          ]
-
-        },
-
-        options:{
-          responsive:true,
-          maintainAspectRatio:false,
-          cutout:"68%",
-
-          plugins:{
-            legend:{
-              position:"bottom"
-            }
-          }
-
-        }
-
-      }
-
-    );
-
-
-    /* CASH CHART */
-
-    new Chart(
-      document.getElementById(
-        "homeCashChart"
-      ),
-      {
-
-        type:"bar",
-
-        data:{
-
-          labels:
-            (
-              monthly.finance ||
-              []
-            ).map(
-              row =>
-                row.label
-            ),
-
-          datasets:[
-
-            {
-              label:"Inflow",
-
-              data:
-                (
-                  monthly.finance ||
-                  []
-                ).map(
-                  row =>
-                    row.inflow || 0
-                )
-            },
-
-            {
-              label:"Outflow",
-
-              data:
-                (
-                  monthly.finance ||
-                  []
-                ).map(
-                  row =>
-                    row.outflow || 0
-                )
-            }
-
-          ]
-
-        },
-
-        options:{
-
-          responsive:true,
-
-          maintainAspectRatio:false,
-
-          plugins:{
-            legend:{
-              position:"bottom"
-            }
-          }
-
-        }
-
-      }
-
-    );
-
-  }catch(error){
-
-    showError(error);
-
-  }
-
-}
-
-
-/* =========================================================
-   MONTH LABEL
-   ========================================================= */
-
-function monthLabel(
-  value
-){
-
-  if(!value)
-    return "";
-
-  if(
-    !/^\d{4}-\d{2}$/
-      .test(value)
-  ){
-
-    return value;
-
-  }
-
-  const [
-    year,
-    month
-  ] =
-    value.split("-");
-
-  const names=[
-    "Jan","Feb","Mar","Apr",
-    "May","Jun","Jul","Aug",
-    "Sep","Oct","Nov","Dec"
-  ];
-
-  return (
-    names[
-      Number(month)-1
-    ] +
-    "-" +
-    year
-  );
-
-}
-
-
-/* =========================================================
    PROJECTS
    ========================================================= */
 
 async function projects(){
 
-  setActive(
-    "projects"
-  );
+  setActive("projects");
 
   destroyChart();
 
-  document.getElementById(
-    "appRoot"
-  ).innerHTML =
-    `<div class="sub">
-      Loading projects…
-    </div>`;
+
+  root.innerHTML =
+    `
+      <div class="loading">
+        Loading projects…
+      </div>
+    `;
+
 
   try{
 
-    const result =
-      await api(
-        "projectList"
-      );
+    await projectsList();
 
-    cache.projects =
-      result.data ||
-      [];
 
-    document.getElementById(
-      "appRoot"
-    ).innerHTML =
+    root.innerHTML =
 
-      head(
+      top(
         "Projects",
         "Project-wise performance and execution.",
-        `<button
-          class="btn"
-          onclick="projects()"
-        >
-          ↻ Refresh
-        </button>`
+
+        `
+          <button
+            class="btn"
+            onclick="projects()"
+          >
+            ↻ Refresh
+          </button>
+        `
       )
 
       +
 
-      `<div class="project-grid">
+      `
 
-        ${cache.projects
-          .map(projectCard)
-          .join("")}
+        <div class="project-grid">
 
-      </div>`;
+          ${
+            state.projects
+              .map(projectCard)
+              .join("")
+          }
+
+        </div>
+
+      `;
 
   }catch(error){
 
@@ -2266,35 +1821,37 @@ async function projects(){
 
 
 /* =========================================================
-   PROJECT DETAIL
+   PROJECT DETAILS
    ========================================================= */
 
 async function openProject(
   projectId
 ){
 
-  setActive(
-    "projects"
-  );
+  setActive("projects");
 
   destroyChart();
 
-  document.getElementById(
-    "appRoot"
-  ).innerHTML =
-    `<div class="sub">
-      Loading project details…
-    </div>`;
+
+  root.innerHTML =
+    `
+      <div class="loading">
+        Loading project details…
+      </div>
+    `;
+
 
   try{
 
-    cache.project =
+    state.project =
       await api(
         "project",
         {
           id:projectId
-        }
+        },
+        true
       );
+
 
     renderProject(
       "overview"
@@ -2314,103 +1871,101 @@ function renderProject(
 ){
 
   const data =
-    cache.project;
+    state.project;
+
 
   const project =
     data.project;
 
-  const summary =
-    data.summary;
 
-  const tabs=[
+  const summary =
+    data.summary ||
+    {};
+
+
+  const tabs = [
+
     ["overview","Overview"],
+
     ["budget","Budget"],
+
     ["workorders","Work Orders"],
+
     ["payments","Payments"],
+
     ["site","Site Status"],
+
     ["sales","Leads & Visits"]
+
   ];
 
-  let content="";
+
+  let content = "";
 
 
   if(tab === "overview"){
 
     content = `
 
-      <div class="grid4">
+      <div class="grid g4">
 
         ${kpi(
           "Budget",
-          money(
-            summary.budget
-          ),
+          money(summary.budget),
           "Budget with GST"
         )}
 
         ${kpi(
           "Actual Payments",
-          money(
-            summary.actualPayments
-          ),
+          money(summary.actualPayments),
           "Paid"
         )}
 
         ${kpi(
           "Work Orders",
           summary.workOrderCount,
-          money(
-            summary.workOrderValue
-          )
+          money(summary.workOrderValue)
         )}
 
         ${kpi(
           "Booking Value",
-          money(
-            summary.bookingValue
-          ),
-          `${summary.bookings} bookings`
+          money(summary.bookingValue),
+          `${summary.bookings || 0} bookings`
         )}
 
       </div>
 
 
-      <div class="section grid2">
+      <div class="sec grid g2">
 
         <div class="card">
 
-          <div class="section-head">
-            <h2>
-              Sales & Site
-            </h2>
-          </div>
-
-          ${financeRow(
+          ${row(
             "Units",
             summary.units
           )}
 
-          ${financeRow(
+          ${row(
             "Booked",
             summary.bookedUnits
           )}
 
-          ${financeRow(
+          ${row(
             "Available",
             summary.availableUnits
           )}
 
-          ${financeRow(
+          ${row(
             "Hold",
             summary.holdUnits
           )}
 
-          ${financeRow(
+          ${row(
             "Leads",
             summary.leads
           )}
 
-          ${financeRow(
+          ${row(
             "Site Visits",
             summary.siteVisits
           )}
@@ -2420,43 +1975,29 @@ function renderProject(
 
         <div class="card">
 
-          <div class="section-head">
-
-            <h2>
-              Commercial
-            </h2>
-
-          </div>
-
-          ${financeRow(
+          ${row(
             "Planned Payment Plan",
-            money(
-              summary.plannedPayments
-            )
+            money(summary.plannedPayments)
           )}
 
-          ${financeRow(
+          ${row(
             "Actual Payments",
-            money(
-              summary.actualPayments
-            )
+            money(summary.actualPayments)
           )}
 
-          ${financeRow(
+          ${row(
             "Remaining Budget",
-            money(
-              summary.remainingBudget
-            )
+            money(summary.remainingBudget)
           )}
 
-          ${financeRow(
+          ${row(
             "First Visits",
-            summary.firstVisits
+            summary.firstVisits || 0
           )}
 
-          ${financeRow(
+          ${row(
             "Revisits",
-            summary.revisits
+            summary.revisits || 0
           )}
 
         </div>
@@ -2474,48 +2015,39 @@ function renderProject(
 
       <div class="card">
 
-        ${table(
+        ${
+          htmlTable(
+            [
+              "Budget ID",
+              "Category",
+              "Subcategory",
+              "Budget",
+              "Budget + GST"
+            ],
 
-          [
-            "Budget ID",
-            "Category",
-            "Subcategory",
-            "Budget",
-            "Budget + GST"
-          ],
+            (data.budget || [])
+              .map(
+                r => [
 
-          (
-            data.budget ||
-            []
-          ).map(
-            row => [
+                  esc(r["Budget ID"]),
 
-              esc(
-                row["Budget ID"]
-              ),
+                  esc(r["Main Category"]),
 
-              esc(
-                row["Main Category"]
-              ),
+                  esc(
+                    r["Construction Category"] ||
+                    "—"
+                  ),
 
-              esc(
-                row[
-                  "Construction Category"
-                ] || "—"
-              ),
+                  money(r["Budget"]),
 
-              money(
-                row["Budget"]
-              ),
+                  money(
+                    r["Budget With GST"]
+                  )
 
-              money(
-                row["Budget With GST"]
+                ]
               )
-
-            ]
           )
-
-        )}
+        }
 
       </div>
 
@@ -2530,51 +2062,37 @@ function renderProject(
 
       <div class="card">
 
-        ${table(
+        ${
+          htmlTable(
+            [
+              "WO ID",
+              "Vendor",
+              "Description",
+              "Value",
+              "Timeline",
+              "Status"
+            ],
 
-          [
-            "WO ID",
-            "Vendor",
-            "Description",
-            "Value",
-            "Timeline",
-            "Status"
-          ],
+            (data.workOrders || [])
+              .map(
+                r => [
 
-          (
-            data.workOrders ||
-            []
-          ).map(
-            row => [
+                  esc(r["WO ID"]),
 
-              esc(
-                row["WO ID"]
-              ),
+                  esc(r["Vendor"]),
 
-              esc(
-                row["Vendor"]
-              ),
+                  esc(r["Description"]),
 
-              esc(
-                row["Description"]
-              ),
+                  money(r["WO Value"]),
 
-              money(
-                row["WO Value"]
-              ),
+                  esc(r["Timeline"]),
 
-              esc(
-                row["Timeline"]
-              ),
+                  badge(r["Status"])
 
-              badge(
-                row["Status"]
+                ]
               )
-
-            ]
           )
-
-        )}
+        }
 
       </div>
 
@@ -2589,7 +2107,7 @@ function renderProject(
 
       <div class="card">
 
-        <div class="section-head">
+        <div class="sec-head">
 
           <h2>
             Payment Plan
@@ -2597,79 +2115,59 @@ function renderProject(
 
         </div>
 
-        ${table(
+        ${
+          htmlTable(
+            [
+              "WO",
+              "Vendor",
+              "Milestone",
+              "Due",
+              "Planned",
+              "Actual",
+              "Balance",
+              "Status"
+            ],
 
-          [
-            "WO",
-            "Vendor",
-            "Milestone",
-            "Due",
-            "Planned",
-            "Actual",
-            "Balance",
-            "Status"
-          ],
+            (data.paymentPlan || [])
+              .map(
+                r => [
 
-          (
-            data.paymentPlan ||
-            []
-          ).map(
-            row => [
+                  esc(r["WO ID"]),
 
-              esc(
-                row["WO ID"]
-              ),
+                  esc(r["Vendor"]),
 
-              esc(
-                row["Vendor"]
-              ),
+                  esc(r["Milestone"]),
 
-              esc(
-                row["Milestone"]
-              ),
+                  esc(r["Due Month"]),
 
-              esc(
-                row["Due Month"]
-              ),
+                  money(r["Planned Amount"]),
 
-              money(
-                row["Planned Amount"]
-              ),
+                  money(r["Actual Paid"]),
 
-              money(
-                row["Actual Paid"]
-              ),
+                  money(r["Balance"]),
 
-              money(
-                row["Balance"]
-              ),
+                  badge(r["Status"])
 
-              badge(
-                row["Status"]
+                ]
               )
-
-            ]
           )
-
-        )}
+        }
 
       </div>
 
 
-      <div class="section">
+      <div class="sec card">
 
-        <div class="card">
+        <div class="sec-head">
 
-          <div class="section-head">
+          <h2>
+            Actual Payments
+          </h2>
 
-            <h2>
-              Actual Payments
-            </h2>
+        </div>
 
-          </div>
-
-          ${table(
-
+        ${
+          htmlTable(
             [
               "Date",
               "WO",
@@ -2680,47 +2178,31 @@ function renderProject(
               "Status"
             ],
 
-            (
-              data.payments ||
-              []
-            ).map(
-              row => [
+            (data.payments || [])
+              .map(
+                r => [
 
-                esc(
-                  row["Payment Date"]
-                ),
+                  esc(r["Payment Date"]),
 
-                esc(
-                  row["WO ID"] ||
-                  "—"
-                ),
+                  esc(
+                    r["WO ID"] ||
+                    "—"
+                  ),
 
-                esc(
-                  row["Vendor"]
-                ),
+                  esc(r["Vendor"]),
 
-                esc(
-                  row["Category"]
-                ),
+                  esc(r["Category"]),
 
-                money(
-                  row["Amount"]
-                ),
+                  money(r["Amount"]),
 
-                esc(
-                  row["Payment Mode"]
-                ),
+                  esc(r["Payment Mode"]),
 
-                badge(
-                  row["Status"]
-                )
+                  badge(r["Status"])
 
-              ]
-            )
-
-          )}
-
-        </div>
+                ]
+              )
+          )
+        }
 
       </div>
 
@@ -2735,86 +2217,64 @@ function renderProject(
 
       <div class="card">
 
-        <div class="section-head">
+        ${
+          htmlTable(
+            [
+              "Unit",
+              "Area",
+              "Value",
+              "Availability",
+              "Customer",
+              "Stage",
+              "Status",
+              "Target",
+              "Delay"
+            ],
 
-          <h2>
-            Unit & Site Status
-          </h2>
+            (data.units || [])
+              .map(
+                r => [
 
-          <span class="sub">
-            ${(data.units || []).length}
-            units
-          </span>
+                  esc(r.unitId),
 
-        </div>
+                  n(
+                    r.areaSqft
+                  ).toLocaleString("en-IN"),
 
-        ${table(
+                  money(r.unitValue),
 
-          [
-            "Unit",
-            "Area",
-            "Value",
-            "Availability",
-            "Customer",
-            "Stage",
-            "Status",
-            "Target",
-            "Delay"
-          ],
+                  badge(
+                    r.availabilityStatus
+                  ),
 
-          (
-            data.units ||
-            []
-          ).map(
-            row => [
+                  esc(
+                    r.customer ||
+                    "—"
+                  ),
 
-              esc(
-                row.unitId
-              ),
+                  esc(
+                    r.currentStage ||
+                    "—"
+                  ),
 
-              num(
-                row.areaSqft
+                  badge(
+                    r.stageStatus
+                  ),
+
+                  esc(
+                    r.stageTargetDate ||
+                    "—"
+                  ),
+
+                  esc(
+                    r.delayDays ||
+                    0
+                  )
+
+                ]
               )
-              .toLocaleString(
-                "en-IN"
-              ),
-
-              money(
-                row.unitValue
-              ),
-
-              badge(
-                row.availabilityStatus
-              ),
-
-              esc(
-                row.customer ||
-                "—"
-              ),
-
-              esc(
-                row.currentStage ||
-                "—"
-              ),
-
-              badge(
-                row.stageStatus
-              ),
-
-              esc(
-                row.stageTargetDate ||
-                "—"
-              ),
-
-              esc(
-                row.delayDays ||
-                0
-              )
-
-            ]
           )
-
-        )}
+        }
 
       </div>
 
@@ -2827,143 +2287,115 @@ function renderProject(
 
     content = `
 
-      <div class="section grid2">
+      <div class="grid g2">
 
         <div class="card">
 
-          <div class="section-head">
+          <div class="sec-head">
 
             <h2>
               Leads
             </h2>
 
-            <span class="sub">
-              ${(data.leads || []).length}
-            </span>
-
           </div>
 
-          ${table(
+          ${
+            htmlTable(
+              [
+                "Lead ID",
+                "Name",
+                "Source",
+                "Subsource",
+                "Salesperson"
+              ],
 
-            [
-              "Lead ID",
-              "Name",
-              "Source",
-              "Subsource",
-              "Salesperson"
-            ],
+              (data.leads || [])
+                .map(
+                  r => [
 
-            (
-              data.leads ||
-              []
-            ).map(
-              row => [
+                    esc(r["Lead ID"]),
 
-                esc(
-                  row["Lead ID"]
-                ),
+                    esc(
+                      r["Customer Name"] ||
+                      r["Name"] ||
+                      "—"
+                    ),
 
-                esc(
-                  row["Customer Name"] ||
-                  row["Name"] ||
-                  "—"
-                ),
+                    esc(
+                      r["Source"] ||
+                      "—"
+                    ),
 
-                esc(
-                  row["Source"] ||
-                  "—"
-                ),
+                    esc(
+                      r["Subsource"] ||
+                      "—"
+                    ),
 
-                esc(
-                  row["Subsource"] ||
-                  "—"
-                ),
+                    esc(
+                      r["Salesperson"] ||
+                      "—"
+                    )
 
-                esc(
-                  row["Salesperson"] ||
-                  "—"
+                  ]
                 )
-
-              ]
             )
-
-          )}
+          }
 
         </div>
 
 
         <div class="card">
 
-          <div class="section-head">
+          <div class="sec-head">
 
             <h2>
               Site Visits
             </h2>
 
-            <span class="sub">
-              ${(data.siteVisits || []).length}
-            </span>
-
           </div>
 
-          ${table(
+          ${
+            htmlTable(
+              [
+                "Date",
+                "Lead",
+                "Type",
+                "Salesperson"
+              ],
 
-            [
-              "Date",
-              "Lead",
-              "Type",
-              "Salesperson"
-            ],
+              (data.siteVisits || [])
+                .map(
+                  r => [
 
-            (
-              data.siteVisits ||
-              []
-            ).map(
-              row => [
+                    esc(
+                      r["Visit Date"] ||
+                      r["Date"] ||
+                      "—"
+                    ),
 
-                esc(
-                  row["Visit Date"] ||
-                  row["Date"] ||
-                  "—"
-                ),
+                    esc(r["Lead ID"]),
 
-                esc(
-                  row["Lead ID"]
-                ),
+                    esc(r["Visit Type"]),
 
-                esc(
-                  row["Visit Type"]
-                ),
+                    esc(
+                      r["Salesperson"] ||
+                      "—"
+                    )
 
-                esc(
-                  row["Salesperson"] ||
-                  "—"
+                  ]
                 )
-
-              ]
             )
-
-          )}
+          }
 
         </div>
 
       </div>
 
 
-      <div class="section">
+      <div class="sec card">
 
-        <div class="card">
-
-          <div class="section-head">
-
-            <h2>
-              Bookings
-            </h2>
-
-          </div>
-
-          ${table(
-
+        ${
+          htmlTable(
             [
               "Date",
               "Lead",
@@ -2972,41 +2404,35 @@ function renderProject(
               "Status"
             ],
 
-            (
-              data.bookings ||
-              []
-            ).map(
-              row => [
+            (data.bookings || [])
+              .map(
+                r => [
 
-                esc(
-                  row["Booking Date"] ||
-                  row["Date"] ||
-                  "—"
-                ),
+                  esc(
+                    r["Booking Date"] ||
+                    r["Date"] ||
+                    "—"
+                  ),
 
-                esc(
-                  row["Lead ID"]
-                ),
+                  esc(r["Lead ID"]),
 
-                esc(
-                  row["Unit ID"] ||
-                  "—"
-                ),
+                  esc(
+                    r["Unit ID"] ||
+                    "—"
+                  ),
 
-                money(
-                  row["Booking Value"]
-                ),
+                  money(
+                    r["Booking Value"]
+                  ),
 
-                badge(
-                  row["Status"]
-                )
+                  badge(
+                    r["Status"]
+                  )
 
-              ]
-            )
-
-          )}
-
-        </div>
+                ]
+              )
+          )
+        }
 
       </div>
 
@@ -3015,71 +2441,69 @@ function renderProject(
   }
 
 
-  document.getElementById(
-    "appRoot"
-  ).innerHTML =
+  root.innerHTML =
 
-    head(
-
+    top(
       project["Project Name"],
+      `${project["Project Status"]} · ${project["Location"]} · Completion ${project["Expected Completion"]}`,
 
-      `${project["Project Status"]}
-       · ${project["Location"]}
-       · Completion
-       ${project["Expected Completion"]}`,
+      `
+        <button
+          class="btn"
+          onclick="projects()"
+        >
+          ← Projects
+        </button>
 
-      `<button
-        class="btn"
-        onclick="projects()"
-      >
-        ← Projects
-      </button>
-
-      <button
-        class="btn"
-        onclick="
-          openProject(
-            '${esc(
-              project["Project ID"]
-            )}'
-          )
-        "
-      >
-        ↻ Refresh
-      </button>`
-
+        <button
+          class="btn"
+          onclick="
+            openProject(
+              '${esc(
+                project["Project ID"]
+              )}'
+            )
+          "
+        >
+          ↻ Refresh
+        </button>
+      `
     )
 
     +
 
-    `<div class="tabs">
+    `
 
-      ${tabs
-        .map(
-          item => `
+      <div class="tabs">
 
-            <button
-              class="tab
-                ${
-                  item[0] === tab
-                    ? "active"
-                    : ""
-                }"
+        ${
+          tabs
+            .map(
+              item => `
 
-              onclick="
-                renderProject(
-                  '${item[0]}'
-                )
-              "
-            >
-              ${item[1]}
-            </button>
+                <button
+                  class="tab ${
+                    item[0] === tab
+                      ? "active"
+                      : ""
+                  }"
+                  onclick="
+                    renderProject(
+                      '${item[0]}'
+                    )
+                  "
+                >
+                  ${item[1]}
+                </button>
 
-          `
-        )
-        .join("")}
+              `
+            )
+            .join("")
+        }
 
-    </div>`
+      </div>
+
+    `
 
     +
 
@@ -3090,227 +2514,222 @@ function renderProject(
 
 /* =========================================================
    APPROVALS
-   PROJECT FILTER + MONTH CHART
    ========================================================= */
 
 async function approvals(
   projectId="ALL"
 ){
 
-  setActive(
-    "approvals"
-  );
+  setActive("approvals");
 
   destroyChart();
 
+  root.innerHTML =
+    `
+      <div class="loading">
+        Loading approvals…
+      </div>
+    `;
+
+
   try{
 
-    if(!cache.projects){
+    await projectsList();
 
-      const projectsResult =
-        await api(
-          "projectList"
-        );
-
-      cache.projects =
-        projectsResult.data ||
-        [];
-
-    }
 
     const result =
-      await api(
-        "management",
-        {
-          id:projectId
-        }
+      await getMgmt(
+        projectId
       );
 
+
+    const data =
+      result.approvals ||
+      {};
+
+
     const records =
-      result.approvals.records ||
+      data.records ||
       [];
 
+
     const pending =
-      result.approvals.pending ||
+      data.pending ||
       0;
+
 
     const completed =
-      result.approvals.completed ||
+      data.completed ||
       0;
 
-    document.getElementById(
-      "appRoot"
-    ).innerHTML =
 
-      head(
+    root.innerHTML =
+
+      top(
         "Approvals",
         "Approval tracker with project and month-wise visibility.",
-        `<button
-          class="btn"
-          onclick="
-            approvals(
-              '${projectId}'
-            )
-          "
-        >
-          ↻ Refresh
-        </button>`
+
+        `
+          <button
+            class="btn"
+            onclick="
+              approvals(
+                '${projectId}'
+              )
+            "
+          >
+            ↻ Refresh
+          </button>
+        `
       )
 
       +
 
-      filterBar(
+      filter(
         projectId,
         "approvals"
       )
 
       +
 
-      `<div class="grid4">
+      `
 
-        ${kpi(
-          "Total",
-          records.length,
-          "Filtered records"
-        )}
+        <div class="grid g4">
 
-        ${kpi(
-          "Pending",
-          pending,
-          "Need action"
-        )}
-
-        ${kpi(
-          "Completed",
-          completed,
-          "Done"
-        )}
-
-        ${kpi(
-          "Other",
-          Math.max(
-            0,
-            records.length -
-            pending -
-            completed
-          ),
-          "Other status"
-        )}
-
-      </div>
-
-      <div class="section grid2">
-
-        <div class="card">
-
-          <div class="section-head">
-            <h2>
-              Monthly Approval Status
-            </h2>
-          </div>
-
-          <div class="chartbox">
-            <canvas
-              id="approvalChart">
-            </canvas>
-          </div>
-
-        </div>
-
-        <div class="card">
-
-          <div class="section-head">
-            <h2>
-              Current Status
-            </h2>
-          </div>
-
-          ${financeRow(
-            "Pending",
-            pending
-          )}
-
-          ${financeRow(
-            "Completed",
-            completed
-          )}
-
-          ${financeRow(
+          ${kpi(
             "Total",
-            records.length
+            records.length,
+            "Filtered records"
+          )}
+
+          ${kpi(
+            "Pending",
+            pending,
+            "Need action"
+          )}
+
+          ${kpi(
+            "Completed",
+            completed,
+            "Done"
+          )}
+
+          ${kpi(
+            "Other",
+            Math.max(
+              0,
+              records.length -
+              pending -
+              completed
+            ),
+            "Other status"
           )}
 
         </div>
 
-      </div>
 
-      <div class="section">
+        <div class="sec grid g2">
 
-        <div class="card">
+          <div class="card">
 
-          ${table(
+            <div class="sec-head">
 
-            [
-              "Project",
-              "Approval",
-              "Owner",
-              "Planned",
-              "Actual",
-              "Status"
-            ],
+              <h2>
+                Monthly Approval Status
+              </h2>
 
-            records.map(
-              row => [
+            </div>
 
-                esc(
-                  row["Project Name"] ||
-                  row["Project ID"]
-                ),
+            <div class="chart">
 
-                esc(
-                  row["Approval Type"]
-                ),
+              <canvas id="apChart"></canvas>
 
-                esc(
-                  row["Owner"] ||
-                  "—"
-                ),
+            </div>
 
-                esc(
-                  row["Planned Date"] ||
-                  "—"
-                ),
+          </div>
 
-                esc(
-                  row["Actual Date"] ||
-                  "—"
-                ),
 
-                badge(
-                  row["Status"]
-                )
+          <div class="card">
 
-              ]
+            ${row(
+              "Pending",
+              pending
+            )}
+
+            ${row(
+              "Completed",
+              completed
+            )}
+
+            ${row(
+              "Total",
+              records.length
+            )}
+
+          </div>
+
+        </div>
+
+
+        <div class="sec card">
+
+          ${
+            htmlTable(
+              [
+                "Project",
+                "Approval",
+                "Owner",
+                "Planned",
+                "Actual",
+                "Status"
+              ],
+
+              records.map(
+                r => [
+
+                  esc(
+                    r["Project Name"] ||
+                    r["Project ID"]
+                  ),
+
+                  esc(
+                    r["Approval Type"]
+                  ),
+
+                  esc(
+                    r["Owner"] ||
+                    "—"
+                  ),
+
+                  esc(
+                    r["Planned Date"] ||
+                    "—"
+                  ),
+
+                  esc(
+                    r["Actual Date"] ||
+                    "—"
+                  ),
+
+                  badge(
+                    r["Status"]
+                  )
+
+                ]
+              )
             )
-
-          )}
+          }
 
         </div>
 
-      </div>`;
+      `;
 
 
-    const monthly =
-      result.approvals.monthly ||
-      [];
-
-    activeChart =
+    chart =
       new Chart(
-
         document.getElementById(
-          "approvalChart"
+          "apChart"
         ),
-
         {
 
           type:"bar",
@@ -3318,10 +2737,8 @@ async function approvals(
           data:{
 
             labels:
-              monthly.map(
-                row =>
-                  row.label
-              ),
+              (data.monthly || [])
+                .map(x => x.label),
 
             datasets:[
 
@@ -3329,22 +2746,24 @@ async function approvals(
                 label:"Completed",
 
                 data:
-                  monthly.map(
-                    row =>
-                      row.completed ||
-                      0
-                  )
+                  (data.monthly || [])
+                    .map(
+                      x =>
+                        x.completed ||
+                        0
+                    )
               },
 
               {
                 label:"Pending",
 
                 data:
-                  monthly.map(
-                    row =>
-                      row.pending ||
-                      0
-                  )
+                  (data.monthly || [])
+                    .map(
+                      x =>
+                        x.pending ||
+                        0
+                    )
               }
 
             ]
@@ -3380,355 +2799,81 @@ async function approvals(
 
 /* =========================================================
    FINANCE
-   PROJECT FILTER + MONTH CHART
    ========================================================= */
 
 async function finance(
   projectId="ALL"
 ){
 
-  setActive(
-    "finance"
-  );
+  setActive("finance");
 
   destroyChart();
 
+  root.innerHTML =
+    `
+      <div class="loading">
+        Loading finance…
+      </div>
+    `;
+
+
   try{
 
-    if(!cache.projects){
-
-      const list =
-        await api(
-          "projectList"
-        );
-
-      cache.projects =
-        list.data ||
-        [];
-
-    }
-
-    if(projectId === "ALL"){
-
-      const result =
-        await api(
-          "management",
-          {id:"ALL"}
-        );
-
-      const cash =
-        result.cashFlow;
-
-      document.getElementById(
-        "appRoot"
-      ).innerHTML =
-
-        head(
-          "Finance",
-          "Company cash position with project filtering.",
-          `<button
-            class="btn"
-            onclick="
-              finance('ALL')
-            "
-          >
-            ↻ Refresh
-          </button>`
-        )
-
-        +
-
-        filterBar(
-          projectId,
-          "finance"
-        )
-
-        +
-
-        `<div class="grid4">
-
-          ${kpi(
-            "Collections",
-            money(
-              cash.inflow
-            ),
-            "Cash inflow"
-          )}
-
-          ${kpi(
-            "Outflow",
-            money(
-              cash.outflow
-            ),
-            "Cash outflow"
-          )}
-
-          ${kpi(
-            "Marketing",
-            money(
-              result.marketing.payments
-                .reduce(
-                  (sum,row) =>
-                    sum +
-                    num(
-                      row["Amount"]
-                    ),
-                  0
-                )
-            ),
-            "Marketing payments"
-          )}
-
-          ${kpi(
-            "Net Cash",
-            money(
-              cash.inflow -
-              cash.outflow
-            ),
-            "Central cash flow"
-          )}
-
-        </div>
-
-        <div class="section">
-
-          <div class="card">
-
-            <div class="section-head">
-
-              <h2>
-                Monthly Cash Flow
-              </h2>
-
-            </div>
-
-            <div class="chartbox">
-              <canvas
-                id="financeChart">
-              </canvas>
-            </div>
-
-          </div>
-
-        </div>
-
-        <div class="section grid2">
-
-          <div class="card">
-
-            <div class="section-head">
-              <h2>
-                Expense Streams
-              </h2>
-            </div>
-
-            ${financeRow(
-              "Project Payments",
-              money(
-                result.financeProjectPayments ||
-                result.marketing?.payments
-              )
-            )}
-
-            ${financeRow(
-              "Marketing Payments",
-              money(
-                result.marketing.payments
-                  .reduce(
-                    (sum,row) =>
-                      sum +
-                      num(
-                        row["Amount"]
-                      ),
-                    0
-                  )
-              )
-            )}
-
-            ${financeRow(
-              "Company Expenses",
-              money(
-                result.companyExpenses
-                  .reduce(
-                    (sum,row) =>
-                      sum +
-                      num(
-                        row["Amount"]
-                      ),
-                    0
-                  )
-              )
-            )}
-
-          </div>
-
-          <div class="card">
-
-            <div class="section-head">
-              <h2>
-                Cash Flow Records
-              </h2>
-            </div>
-
-            ${table(
-
-              [
-                "Date",
-                "Project",
-                "Direction",
-                "Amount",
-                "Category"
-              ],
-
-              (
-                cash.records ||
-                []
-              ).slice(-30)
-              .reverse()
-              .map(
-                row => [
-
-                  esc(
-                    row["Transaction Date"] ||
-                    "—"
-                  ),
-
-                  esc(
-                    row["Project Name"] ||
-                    row["Project ID"] ||
-                    "—"
-                  ),
-
-                  badge(
-                    row["Direction"]
-                  ),
-
-                  money(
-                    row["Amount"]
-                  ),
-
-                  esc(
-                    row["Category"] ||
-                    "—"
-                  )
-
-                ]
-              )
-
-            )}
-
-          </div>
-
-        </div>`;
-
-
-      activeChart =
-        new Chart(
-
-          document.getElementById(
-            "financeChart"
-          ),
-
-          {
-
-            type:"bar",
-
-            data:{
-
-              labels:
-                (
-                  cash.monthly ||
-                  []
-                ).map(
-                  row =>
-                    row.label
-                ),
-
-              datasets:[
-
-                {
-                  label:"Inflow",
-
-                  data:
-                    (
-                      cash.monthly ||
-                      []
-                    ).map(
-                      row =>
-                        row.inflow ||
-                        0
-                    )
-                },
-
-                {
-                  label:"Outflow",
-
-                  data:
-                    (
-                      cash.monthly ||
-                      []
-                    ).map(
-                      row =>
-                        row.outflow ||
-                        0
-                    )
-                }
-
-              ]
-
-            },
-
-            options:{
-
-              responsive:true,
-
-              maintainAspectRatio:false,
-
-              plugins:{
-                legend:{
-                  position:"bottom"
-                }
-              }
-
-            }
-
-          }
-
-        );
-
-    }else{
-
-      const result =
-        await api(
-          "management",
-          {
-            id:projectId
-          }
-        );
-
-      const project =
-        cache.projects.find(
-          row =>
-            String(
-              row["Project ID"]
-            ) ===
-            String(projectId)
-        );
-
-      document.getElementById(
-        "appRoot"
-      ).innerHTML =
-
-        head(
-          (
-            project &&
-            project["Project Name"]
-          )
-          || "Project Finance",
-
-          "Project-specific finance and payment plan.",
-
-          `<button
+    await projectsList();
+
+
+    const result =
+      await getMgmt(
+        projectId
+      );
+
+
+    const cash =
+      result.cashFlow ||
+      {};
+
+
+    const marketingPayments =
+      result.marketing?.payments ||
+      [];
+
+
+    const projectPayments =
+      result.financeProjectPayments ||
+      0;
+
+
+    const companyExpenses =
+      result.companyExpenses ||
+      [];
+
+
+    const marketingTotal =
+      marketingPayments.reduce(
+        (sum,row) =>
+          sum +
+          n(row["Amount"]),
+        0
+      );
+
+
+    const expensesTotal =
+      companyExpenses.reduce(
+        (sum,row) =>
+          sum +
+          n(row["Amount"]),
+        0
+      );
+
+
+    root.innerHTML =
+
+      top(
+        "Finance",
+        "Company cash position with project filtering.",
+
+        `
+          <button
             class="btn"
             onclick="
               finance(
@@ -3737,142 +2882,89 @@ async function finance(
             "
           >
             ↻ Refresh
-          </button>`
-        )
+          </button>
+        `
+      )
 
-        +
+      +
 
-        filterBar(
-          projectId,
-          "finance"
-        )
+      filter(
+        projectId,
+        "finance"
+      )
 
-        +
+      +
 
-        `<div class="grid4">
+      `
 
-          ${kpi(
-            "Marketing Budget",
-            money(
-              result.marketing.budget
-                .reduce(
-                  (sum,row) =>
-                    sum +
-                    num(
-                      row["Budget Amount"]
-                    ),
-                  0
-                )
-            ),
-            "Filtered project"
-          )}
-
-          ${kpi(
-            "Marketing Actual",
-            money(
-              result.marketing.budget
-                .reduce(
-                  (sum,row) =>
-                    sum +
-                    num(
-                      row["Actual Spend"]
-                    ),
-                  0
-                ),
-            ),
-            "Actual spend"
-          )}
-
-          ${kpi(
-            "Marketing Remaining",
-            money(
-              result.marketing.budget
-                .reduce(
-                  (sum,row) =>
-                    sum +
-                    num(
-                      row["Remaining"]
-                    ),
-                  0
-                )
-            ),
-            "Budget balance"
-          )}
+        <div class="grid g4">
 
           ${kpi(
             "Collections",
+            money(cash.inflow),
+            "Cash inflow"
+          )}
+
+          ${kpi(
+            "Outflow",
+            money(cash.outflow),
+            "Cash outflow"
+          )}
+
+          ${kpi(
+            "Marketing",
+            money(marketingTotal),
+            "Marketing payments"
+          )}
+
+          ${kpi(
+            "Net Cash",
             money(
-              result.crm.collectionAmount
+              n(cash.inflow) -
+              n(cash.outflow)
             ),
-            "CRM collections"
+            "Central cash flow"
           )}
 
         </div>
 
-        <div class="section">
 
-          <div class="card">
+        <div class="sec card">
 
-            <div class="section-head">
-              <h2>
-                Monthly Project Finance
-              </h2>
-            </div>
+          <div class="sec-head">
 
-            <div class="chartbox">
-              <canvas
-                id="projectFinanceChart">
-              </canvas>
-            </div>
+            <h2>
+              Monthly Cash Flow
+            </h2>
+
+          </div>
+
+          <div class="chart">
+
+            <canvas id="fChart"></canvas>
 
           </div>
 
         </div>
 
-        <div class="section grid2">
+
+        <div class="sec grid g2">
 
           <div class="card">
 
-            <div class="section-head">
-              <h2>
-                Marketing Budget
-              </h2>
-            </div>
+            ${row(
+              "Project Payments",
+              money(projectPayments)
+            )}
 
-            ${table(
+            ${row(
+              "Marketing Payments",
+              money(marketingTotal)
+            )}
 
-              [
-                "Month",
-                "Budget",
-                "Actual",
-                "Remaining"
-              ],
-
-              (
-                result.marketing.budget ||
-                []
-              ).map(
-                row => [
-
-                  esc(
-                    row["Month"]
-                  ),
-
-                  money(
-                    row["Budget Amount"]
-                  ),
-
-                  money(
-                    row["Actual Spend"]
-                  ),
-
-                  money(
-                    row["Remaining"]
-                  )
-
-                ]
-              )
-
+            ${row(
+              "Company Expenses",
+              money(expensesTotal)
             )}
 
           </div>
@@ -3880,473 +2972,63 @@ async function finance(
 
           <div class="card">
 
-            <div class="section-head">
-              <h2>
-                CRM Collections
-              </h2>
-            </div>
+            ${
+              htmlTable(
+                [
+                  "Date",
+                  "Project",
+                  "Direction",
+                  "Category",
+                  "Amount",
+                  "Status"
+                ],
 
-            ${table(
+                (cash.records || [])
+                  .map(
+                    r => [
 
-              [
-                "Date",
-                "Project",
-                "Amount",
-                "Mode",
-                "Status"
-              ],
+                      esc(
+                        r["Transaction Date"]
+                      ),
 
-              (
-                result.crm.collections ||
-                []
-              ).map(
-                row => [
+                      esc(
+                        r["Project Name"] ||
+                        r["Project ID"]
+                      ),
 
-                  esc(
-                    row["Collection Date"] ||
-                    "—"
-                  ),
+                      badge(
+                        r["Direction"]
+                      ),
 
-                  esc(
-                    row["Project Name"] ||
-                    row["Project ID"]
-                  ),
+                      esc(
+                        r["Category"]
+                      ),
 
-                  money(
-                    row["Amount"]
-                  ),
+                      money(
+                        r["Amount"]
+                      ),
 
-                  esc(
-                    row["Payment Mode"] ||
-                    "—"
-                  ),
+                      badge(
+                        r["Status"]
+                      )
 
-                  badge(
-                    row["Status"] ||
-                    "—"
+                    ]
                   )
-
-                ]
               )
-
-            )}
-
-          </div>
-
-        </div>`;
-
-      const rows =
-        [
-          ...(result.marketing.monthlyBudget || []),
-          ...(result.crm.monthly || [])
-        ];
-
-      const monthSet =
-        Array.from(
-          new Set(
-            rows.map(
-              row =>
-                row.month
-            )
-          )
-        ).sort();
-
-      const marketingMap =
-        {};
-
-      (
-        result.marketing.monthlyBudget ||
-        []
-      ).forEach(
-        row => {
-
-          marketingMap[
-            row.month
-          ] = row;
-
-        }
-      );
-
-      const crmMap =
-        {};
-
-      (
-        result.crm.monthly ||
-        []
-      ).forEach(
-        row => {
-
-          crmMap[
-            row.month
-          ] = row;
-
-        }
-      );
-
-      activeChart =
-        new Chart(
-
-          document.getElementById(
-            "projectFinanceChart"
-          ),
-
-          {
-
-            type:"bar",
-
-            data:{
-
-              labels:
-                monthSet.map(
-                  monthLabel
-                ),
-
-              datasets:[
-
-                {
-                  label:"Marketing Budget",
-
-                  data:
-                    monthSet.map(
-                      key =>
-                        marketingMap[
-                          key
-                        ]?.budget ||
-                        0
-                    )
-                },
-
-                {
-                  label:"Actual Spend",
-
-                  data:
-                    monthSet.map(
-                      key =>
-                        marketingMap[
-                          key
-                        ]?.actual ||
-                        0
-                    )
-                },
-
-                {
-                  label:"CRM Collections",
-
-                  data:
-                    monthSet.map(
-                      key =>
-                        crmMap[
-                          key
-                        ]?.collections ||
-                        0
-                    )
-                }
-
-              ]
-
-            },
-
-            options:{
-
-              responsive:true,
-
-              maintainAspectRatio:false,
-
-              plugins:{
-                legend:{
-                  position:"bottom"
-                }
-              }
-
             }
 
-          }
-
-        );
-
-    }
-
-  }catch(error){
-
-    showError(error);
-
-  }
-
-}
-
-
-/* =========================================================
-   MARKETING
-   PROJECT FILTER + MONTH CHARTS
-   ========================================================= */
-
-async function marketing(
-  projectId="ALL"
-){
-
-  setActive(
-    "marketing"
-  );
-
-  destroyChart();
-
-  try{
-
-    if(!cache.projects){
-
-      const list =
-        await api(
-          "projectList"
-        );
-
-      cache.projects =
-        list.data ||
-        [];
-
-    }
-
-    const result =
-      await api(
-        "management",
-        {
-          id:projectId
-        }
-      );
-
-    const source =
-      result.marketing.sourceLeads ||
-      [];
-
-    const monthly =
-      result.marketing.monthlyBudget ||
-      [];
-
-    const gtm =
-      result.marketing.gtm ||
-      [];
-
-    document.getElementById(
-      "appRoot"
-    ).innerHTML =
-
-      head(
-        "Marketing",
-        "Budget, spend, GTM and lead-source performance.",
-        `<button
-          class="btn"
-          onclick="
-            marketing(
-              '${projectId}'
-            )
-          "
-        >
-          ↻ Refresh
-        </button>`
-      )
-
-      +
-
-      filterBar(
-        projectId,
-        "marketing"
-      )
-
-      +
-
-      `<div class="grid4">
-
-        ${kpi(
-          "Budget",
-          money(
-            monthly.reduce(
-              (sum,row) =>
-                sum +
-                num(
-                  row.budget
-                ),
-              0
-            )
-          ),
-          "Filtered"
-        )}
-
-        ${kpi(
-          "Actual Spend",
-          money(
-            monthly.reduce(
-              (sum,row) =>
-                sum +
-                num(
-                  row.actual
-                ),
-              0
-            )
-          ),
-          "Actual"
-        )}
-
-        ${kpi(
-          "Leads",
-          result.marketing
-            .monthlyLeads
-            .reduce(
-              (sum,row) =>
-                sum +
-                num(row.leads),
-              0
-            ),
-          "Lead contribution"
-        )}
-
-        ${kpi(
-          "GTM Activities",
-          gtm.length,
-          "Planned + completed"
-        )}
-
-      </div>
-
-      <div class="section grid2">
-
-        <div class="card">
-
-          <div class="section-head">
-
-            <h2>
-              Monthly Budget vs Spend
-            </h2>
-
-          </div>
-
-          <div class="chartbox">
-            <canvas
-              id="marketingChart">
-            </canvas>
           </div>
 
         </div>
 
-        <div class="card">
+      `;
 
-          <div class="section-head">
 
-            <h2>
-              Lead Sources
-            </h2>
-
-          </div>
-
-          ${table(
-
-            [
-              "Source",
-              "Leads"
-            ],
-
-            source.map(
-              row => [
-
-                esc(
-                  row.source
-                ),
-
-                num(
-                  row.leads
-                )
-
-              ]
-            )
-
-          )}
-
-        </div>
-
-      </div>
-
-      <div class="section grid2">
-
-        <div class="card">
-
-          <div class="section-head">
-
-            <h2>
-              GTM Calendar
-            </h2>
-
-          </div>
-
-          ${table(
-
-            [
-              "Date",
-              "Activity",
-              "Type",
-              "Channel",
-              "Plan",
-              "Status"
-            ],
-
-            gtm.map(
-              row => [
-
-                esc(
-                  row["Date"]
-                ),
-
-                esc(
-                  row["Activity"]
-                ),
-
-                esc(
-                  row["Type"]
-                ),
-
-                esc(
-                  row["Channel"]
-                ),
-
-                esc(
-                  row["Planned/Actual"]
-                ),
-
-                badge(
-                  row["Status"]
-                )
-
-              ]
-            )
-
-          )}
-
-        </div>
-
-        <div class="card">
-
-          <div class="section-head">
-
-            <h2>
-              Monthly Visits
-            </h2>
-
-          </div>
-
-          <div class="chartbox">
-            <canvas
-              id="marketingVisitChart">
-            </canvas>
-          </div>
-
-        </div>
-
-      </div>`;
-
-    activeChart =
+    chart =
       new Chart(
-
         document.getElementById(
-          "marketingChart"
+          "fChart"
         ),
-
         {
 
           type:"bar",
@@ -4354,33 +3036,33 @@ async function marketing(
           data:{
 
             labels:
-              monthly.map(
-                row =>
-                  row.label
-              ),
+              (cash.monthly || [])
+                .map(x => x.label),
 
             datasets:[
 
               {
-                label:"Budget",
+                label:"Inflow",
 
                 data:
-                  monthly.map(
-                    row =>
-                      row.budget ||
-                      0
-                  )
+                  (cash.monthly || [])
+                    .map(
+                      x =>
+                        x.inflow ||
+                        0
+                    )
               },
 
               {
-                label:"Actual",
+                label:"Outflow",
 
                 data:
-                  monthly.map(
-                    row =>
-                      row.actual ||
-                      0
-                  )
+                  (cash.monthly || [])
+                    .map(
+                      x =>
+                        x.outflow ||
+                        0
+                    )
               }
 
             ]
@@ -4405,68 +3087,317 @@ async function marketing(
 
       );
 
+  }catch(error){
 
-    new Chart(
+    showError(error);
 
-      document.getElementById(
-        "marketingVisitChart"
-      ),
+  }
 
-      {
+}
 
-        type:"line",
 
-        data:{
+/* =========================================================
+   MARKETING
+   ========================================================= */
 
-          labels:
-            (
-              result.marketing
-                .monthlyVisits ||
-              []
-            ).map(
-              row =>
-                row.label
+async function marketing(
+  projectId="ALL"
+){
+
+  setActive("marketing");
+
+  destroyChart();
+
+  root.innerHTML =
+    `
+      <div class="loading">
+        Loading marketing…
+      </div>
+    `;
+
+
+  try{
+
+    await projectsList();
+
+
+    const result =
+      await getMgmt(
+        projectId
+      );
+
+
+    const data =
+      result.marketing ||
+      {};
+
+
+    const budget =
+      data.budget ||
+      [];
+
+
+    const gtm =
+      data.gtm ||
+      [];
+
+
+    const sourceLeads =
+      data.sourceLeads ||
+      [];
+
+
+    const monthlyLeads =
+      data.monthlyLeads ||
+      [];
+
+
+    const totalBudget =
+      budget.reduce(
+        (sum,row) =>
+          sum +
+          n(row["Budget Amount"]),
+        0
+      );
+
+
+    const totalActual =
+      budget.reduce(
+        (sum,row) =>
+          sum +
+          n(row["Actual Spend"]),
+        0
+      );
+
+
+    root.innerHTML =
+
+      top(
+        "Marketing",
+        "Budget, spend, leads and GTM activity.",
+
+        `
+          <button
+            class="btn"
+            onclick="
+              marketing(
+                '${projectId}'
+              )
+            "
+          >
+            ↻ Refresh
+          </button>
+        `
+      )
+
+      +
+
+      filter(
+        projectId,
+        "marketing"
+      )
+
+      +
+
+      `
+
+        <div class="grid g4">
+
+          ${kpi(
+            "Budget",
+            money(totalBudget),
+            "Planned"
+          )}
+
+          ${kpi(
+            "Actual Spend",
+            money(totalActual),
+            "Spent"
+          )}
+
+          ${kpi(
+            "GTM Activities",
+            gtm.length,
+            "Planned + actual"
+          )}
+
+          ${kpi(
+            "Leads",
+            monthlyLeads.reduce(
+              (s,r) =>
+                s +
+                n(r.leads),
+              0
             ),
+            "Filtered period"
+          )}
 
-          datasets:[
-            {
-              label:"Site Visits",
+        </div>
 
-              data:
-                (
-                  result.marketing
-                    .monthlyVisits ||
-                  []
-                ).map(
-                  row =>
-                    row.visits ||
-                    0
-                ),
 
-              tension:.3
+        <div class="sec grid g2">
 
+          <div class="card">
+
+            <div class="sec-head">
+
+              <h2>
+                Monthly Budget vs Actual
+              </h2>
+
+            </div>
+
+            <div class="chart">
+
+              <canvas id="mChart"></canvas>
+
+            </div>
+
+          </div>
+
+
+          <div class="card">
+
+            <div class="sec-head">
+
+              <h2>
+                Lead Sources
+              </h2>
+
+            </div>
+
+            ${
+              htmlTable(
+                [
+                  "Source",
+                  "Leads"
+                ],
+
+                sourceLeads.map(
+                  r => [
+
+                    esc(r.source),
+
+                    n(r.leads)
+
+                  ]
+                )
+              )
             }
-          ]
 
-        },
+          </div>
 
-        options:{
+        </div>
 
-          responsive:true,
 
-          maintainAspectRatio:false,
+        <div class="sec card">
 
-          plugins:{
-            legend:{
-              position:"bottom"
+          <div class="sec-head">
+
+            <h2>
+              GTM Calendar
+            </h2>
+
+          </div>
+
+          ${
+            htmlTable(
+              [
+                "Date",
+                "Project",
+                "Activity",
+                "Channel",
+                "Status"
+              ],
+
+              gtm.map(
+                r => [
+
+                  esc(r.Date),
+
+                  esc(
+                    r["Project Name"] ||
+                    r["Project ID"]
+                  ),
+
+                  esc(r.Activity),
+
+                  esc(r.Channel),
+
+                  badge(r.Status)
+
+                ]
+              )
+            )
+          }
+
+        </div>
+
+      `;
+
+
+    chart =
+      new Chart(
+        document.getElementById(
+          "mChart"
+        ),
+        {
+
+          type:"bar",
+
+          data:{
+
+            labels:
+              (data.monthlyBudget || [])
+                .map(x => x.label),
+
+            datasets:[
+
+              {
+                label:"Budget",
+
+                data:
+                  (data.monthlyBudget || [])
+                    .map(
+                      x =>
+                        x.budget ||
+                        0
+                    )
+              },
+
+              {
+                label:"Actual",
+
+                data:
+                  (data.monthlyBudget || [])
+                    .map(
+                      x =>
+                        x.actual ||
+                        0
+                    )
+              }
+
+            ]
+
+          },
+
+          options:{
+
+            responsive:true,
+
+            maintainAspectRatio:false,
+
+            plugins:{
+              legend:{
+                position:"bottom"
+              }
             }
+
           }
 
         }
 
-      }
-
-    );
+      );
 
   }catch(error){
 
@@ -4483,75 +3414,83 @@ async function marketing(
 
 async function presales(){
 
-  setActive(
-    "presales"
-  );
+  setActive("presales");
 
   destroyChart();
+
+  root.innerHTML =
+    `
+      <div class="loading">
+        Loading pre-sales…
+      </div>
+    `;
+
 
   try{
 
     const result =
-      await api(
-        "management",
-        {
-          id:"ALL"
-        }
+      await getMgmt(
+        "ALL"
       );
 
-    const p =
-      result.presales;
 
-    document.getElementById(
-      "appRoot"
-    ).innerHTML =
+    const data =
+      result.presales ||
+      {};
 
-      head(
+
+    root.innerHTML =
+
+      top(
         "Pre-Sales",
-        "Calling, connected calls and site-visit operating view.",
-        `<button
-          class="btn"
-          onclick="presales()"
-        >
-          ↻ Refresh
-        </button>`
+        "Calling activity, connectivity and follow-ups.",
+
+        `
+          <button
+            class="btn"
+            onclick="presales()"
+          >
+            ↻ Refresh
+          </button>
+        `
       )
 
       +
 
-      `<div class="grid4">
+      `
 
-        ${kpi(
-          "Calls",
-          p.totalCalls,
-          "Total calls"
-        )}
+        <div class="grid g4">
 
-        ${kpi(
-          "Connected",
-          p.connected,
-          "Connected calls"
-        )}
+          ${kpi(
+            "Calls",
+            data.totalCalls || 0,
+            "Total calls"
+          )}
 
-        ${kpi(
-          "Follow-ups",
-          p.followUps,
-          "Follow-up outcomes"
-        )}
+          ${kpi(
+            "Connected",
+            data.connected || 0,
+            "Connected calls"
+          )}
 
-        ${kpi(
-          "Site Visits",
-          p.siteVisitScheduled,
-          "Visits scheduled"
-        )}
+          ${kpi(
+            "Follow-ups",
+            data.followUps || 0,
+            "Follow-up outcomes"
+          )}
 
-      </div>
+          ${kpi(
+            "Site Visits",
+            data.siteVisitScheduled || 0,
+            "Scheduled"
+          )}
 
-      <div class="section grid2">
+        </div>
 
-        <div class="card">
 
-          <div class="section-head">
+        <div class="sec card">
+
+          <div class="sec-head">
 
             <h2>
               Monthly Calling
@@ -4559,98 +3498,81 @@ async function presales(){
 
           </div>
 
-          <div class="chartbox">
-            <canvas
-              id="presalesChart">
-            </canvas>
+          <div class="chart">
+
+            <canvas id="pChart"></canvas>
+
           </div>
 
         </div>
 
-        <div class="card">
 
-          <div class="section-head">
+        <div class="sec card">
 
-            <h2>
-              Calling Report
-            </h2>
+          ${
+            htmlTable(
+              [
+                "Date",
+                "Lead",
+                "Project",
+                "Person",
+                "Connected",
+                "Outcome",
+                "Follow-up Date"
+              ],
 
-          </div>
+              (data.calls || [])
+                .map(
+                  r => [
 
-          ${table(
+                    esc(r["Call Date"]),
 
-            [
-              "Date",
-              "Lead",
-              "Connected",
-              "Outcome",
-              "Salesperson"
-            ],
+                    esc(r["Lead ID"]),
 
-            (
-              p.calls ||
-              []
-            ).slice(-40)
-            .reverse()
-            .map(
-              row => [
+                    esc(
+                      r["Project Name"] ||
+                      r["Project ID"]
+                    ),
 
-                esc(
-                  row["Call Date"] ||
-                  "—"
-                ),
+                    esc(
+                      r["Presales Person"]
+                    ),
 
-                esc(
-                  row["Lead ID"] ||
-                  "—"
-                ),
+                    badge(
+                      r["Connected"]
+                    ),
 
-                badge(
-                  row["Connected"] ||
-                  "—"
-                ),
+                    esc(r["Outcome"]),
 
-                esc(
-                  row["Outcome"] ||
-                  "—"
-                ),
+                    esc(
+                      r["Follow-up Date"] ||
+                      "—"
+                    )
 
-                esc(
-                  row["Salesperson"] ||
-                  row["Employee"] ||
-                  "—"
+                  ]
                 )
-
-              ]
             )
-
-          )}
+          }
 
         </div>
 
-      </div>`;
+      `;
 
-    activeChart =
+
+    chart =
       new Chart(
-
         document.getElementById(
-          "presalesChart"
+          "pChart"
         ),
-
         {
 
-          type:"bar",
+          type:"line",
 
           data:{
 
             labels:
-              (
-                p.monthly ||
-                []
-              ).map(
-                row =>
-                  row.label
-              ),
+              (data.monthly || [])
+                .map(x => x.label),
 
             datasets:[
 
@@ -4658,28 +3580,24 @@ async function presales(){
                 label:"Calls",
 
                 data:
-                  (
-                    p.monthly ||
-                    []
-                  ).map(
-                    row =>
-                      row.calls ||
-                      0
-                  )
+                  (data.monthly || [])
+                    .map(
+                      x =>
+                        x.calls ||
+                        0
+                    )
               },
 
               {
                 label:"Connected",
 
                 data:
-                  (
-                    p.monthly ||
-                    []
-                  ).map(
-                    row =>
-                      row.connected ||
-                      0
-                  )
+                  (data.monthly || [])
+                    .map(
+                      x =>
+                        x.connected ||
+                        0
+                    )
               }
 
             ]
@@ -4715,309 +3633,200 @@ async function presales(){
 
 /* =========================================================
    SALES
-   PROJECT FILTER + MONTH CHART
    ========================================================= */
 
 async function sales(
   projectId="ALL"
 ){
 
-  setActive(
-    "sales"
-  );
+  setActive("sales");
 
   destroyChart();
 
+  root.innerHTML =
+    `
+      <div class="loading">
+        Loading sales…
+      </div>
+    `;
+
+
   try{
 
-    if(!cache.projects){
+    await projectsList();
 
-      const list =
-        await api(
-          "projectList"
-        );
-
-      cache.projects =
-        list.data ||
-        [];
-
-    }
 
     const result =
-      await api(
-        "management",
-        {
-          id:projectId
-        }
+      await getMgmt(
+        projectId
       );
+
+
+    const data =
+      result.sales ||
+      {};
+
 
     const bookings =
-      result.sales.bookings ||
+      data.bookings ||
       [];
 
-    const monthly =
-      result.sales.monthly ||
-      [];
 
-    const inventory =
-      await api(
-        "inventory"
-      );
+    root.innerHTML =
 
-    let units =
-      inventory.data ||
-      [];
-
-    if(projectId !== "ALL"){
-
-      units =
-        units.filter(
-          row =>
-            String(
-              row["Project ID"]
-            ) ===
-            String(projectId)
-        );
-
-    }
-
-    const booked =
-      units.filter(
-        row =>
-          String(
-            row["Availability Status"]
-          ).toLowerCase() ===
-          "booked"
-      ).length;
-
-    const available =
-      units.filter(
-        row =>
-          String(
-            row["Availability Status"]
-          ).toLowerCase() ===
-          "available"
-      ).length;
-
-    const bookingValue =
-      bookings.reduce(
-        (sum,row) =>
-          sum +
-          num(
-            row["Booking Value"]
-          ),
-        0
-      );
-
-    document.getElementById(
-      "appRoot"
-    ).innerHTML =
-
-      head(
+      top(
         "Sales",
-        "Inventory and booking performance.",
-        `<button
-          class="btn"
-          onclick="
-            sales(
-              '${projectId}'
-            )
-          "
-        >
-          ↻ Refresh
-        </button>`
+        "Inventory and booking details.",
+
+        `
+          <button
+            class="btn"
+            onclick="
+              sales(
+                '${projectId}'
+              )
+            "
+          >
+            ↻ Refresh
+          </button>
+        `
       )
 
       +
 
-      filterBar(
+      filter(
         projectId,
         "sales"
       )
 
       +
 
-      `<div class="grid4">
+      `
 
-        ${kpi(
-          "Units",
-          units.length,
-          "Filtered inventory"
-        )}
+        <div class="grid g4">
 
-        ${kpi(
-          "Booked",
-          booked,
-          "Booked units"
-        )}
+          ${kpi(
+            "Bookings",
+            bookings.length,
+            "Filtered"
+          )}
 
-        ${kpi(
-          "Available",
-          available,
-          "Available units"
-        )}
+          ${kpi(
+            "Booking Value",
+            money(data.bookingValue),
+            "Total"
+          )}
 
-        ${kpi(
-          "Booking Value",
-          money(
-            bookingValue
-          ),
-          `${bookings.length} bookings`
-        )}
+          ${kpi(
+            "Units Sold",
+            bookings.length,
+            "Bookings"
+          )}
 
-      </div>
-
-      <div class="section grid2">
-
-        <div class="card">
-
-          <div class="section-head">
-
-            <h2>
-              Monthly Bookings
-            </h2>
-
-          </div>
-
-          <div class="chartbox">
-            <canvas
-              id="salesChart">
-            </canvas>
-          </div>
+          ${kpi(
+            "Projects",
+            new Set(
+              bookings.map(
+                x =>
+                  x["Project ID"]
+              )
+            ).size,
+            "With bookings"
+          )}
 
         </div>
 
-        <div class="card">
 
-          <div class="section-head">
+        <div class="sec grid g2">
 
-            <h2>
-              Inventory
-            </h2>
+          <div class="card">
+
+            <div class="sec-head">
+
+              <h2>
+                Monthly Bookings
+              </h2>
+
+            </div>
+
+            <div class="chart">
+
+              <canvas id="sChart"></canvas>
+
+            </div>
 
           </div>
 
-          ${table(
 
-            [
-              "Unit",
-              "Project",
-              "Type",
-              "Status",
-              "Customer",
-              "Lead"
-            ],
+          <div class="card">
 
-            units.map(
-              row => [
+            <div class="sec-head">
 
-                esc(
-                  row["Unit ID"]
-                ),
+              <h2>
+                Bookings
+              </h2>
 
-                esc(
-                  row["Project Name"] ||
-                  row["Project ID"]
-                ),
+            </div>
 
-                esc(
-                  row["Unit Type"]
-                ),
+            ${
+              htmlTable(
+                [
+                  "Date",
+                  "Project",
+                  "Unit",
+                  "Customer",
+                  "Sales Person",
+                  "Value",
+                  "Status"
+                ],
 
-                badge(
-                  row[
-                    "Availability Status"
+                bookings.map(
+                  r => [
+
+                    esc(r["Booking Date"]),
+
+                    esc(
+                      r["Project Name"] ||
+                      r["Project ID"]
+                    ),
+
+                    esc(
+                      r["Unit ID"]
+                    ),
+
+                    esc(
+                      r["Customer Name"]
+                    ),
+
+                    esc(
+                      r["Sales Person"]
+                    ),
+
+                    money(
+                      r["Booking Value"]
+                    ),
+
+                    badge(
+                      r["Status"]
+                    )
+
                   ]
-                ),
-
-                esc(
-                  row["Customer"] ||
-                  "—"
-                ),
-
-                esc(
-                  row["Lead ID"] ||
-                  "—"
                 )
-
-              ]
-            )
-
-          )}
-
-        </div>
-
-      </div>
-
-      <div class="section">
-
-        <div class="card">
-
-          <div class="section-head">
-
-            <h2>
-              Bookings
-            </h2>
+              )
+            }
 
           </div>
 
-          ${table(
-
-            [
-              "Date",
-              "Lead",
-              "Project",
-              "Unit",
-              "Value",
-              "Status"
-            ],
-
-            bookings.map(
-              row => [
-
-                esc(
-                  row["Booking Date"] ||
-                  "—"
-                ),
-
-                esc(
-                  row["Lead ID"]
-                ),
-
-                esc(
-                  row["Project Name"] ||
-                  row["Project ID"]
-                ),
-
-                esc(
-                  row["Unit ID"] ||
-                  "—"
-                ),
-
-                money(
-                  row["Booking Value"]
-                ),
-
-                badge(
-                  row["Status"]
-                )
-
-              ]
-            )
-
-          )}
-
         </div>
 
-      </div>`;
+      `;
 
-    activeChart =
+
+    chart =
       new Chart(
-
         document.getElementById(
-          "salesChart"
+          "sChart"
         ),
-
         {
 
           type:"bar",
@@ -5025,10 +3834,8 @@ async function sales(
           data:{
 
             labels:
-              monthly.map(
-                row =>
-                  row.label
-              ),
+              (data.monthly || [])
+                .map(x => x.label),
 
             datasets:[
 
@@ -5036,22 +3843,24 @@ async function sales(
                 label:"Bookings",
 
                 data:
-                  monthly.map(
-                    row =>
-                      row.bookings ||
-                      0
-                  )
+                  (data.monthly || [])
+                    .map(
+                      x =>
+                        x.bookings ||
+                        0
+                    )
               },
 
               {
                 label:"Booking Value",
 
                 data:
-                  monthly.map(
-                    row =>
-                      row.bookingValue ||
-                      0
-                  )
+                  (data.monthly || [])
+                    .map(
+                      x =>
+                        x.bookingValue ||
+                        0
+                    )
               }
 
             ]
@@ -5091,171 +3900,174 @@ async function sales(
 
 async function cp(){
 
-  setActive(
-    "cp"
-  );
+  setActive("cp");
 
   destroyChart();
+
+  root.innerHTML =
+    `
+      <div class="loading">
+        Loading channel partners…
+      </div>
+    `;
+
 
   try{
 
     const result =
-      await api(
-        "management",
-        {
-          id:"ALL"
-        }
+      await getMgmt(
+        "ALL"
       );
 
+
     const data =
-      result.cp;
+      result.cp ||
+      {};
 
-    const payout =
-      data.payoutSummary;
 
-    document.getElementById(
-      "appRoot"
-    ).innerHTML =
+    const summary =
+      data.payoutSummary ||
+      {};
 
-      head(
+
+    root.innerHTML =
+
+      top(
         "Channel Partners",
-        "Partner contribution and payout position.",
-        `<button
-          class="btn"
-          onclick="cp()"
-        >
-          ↻ Refresh
-        </button>`
+        "Contribution and payout tracker.",
+
+        `
+          <button
+            class="btn"
+            onclick="cp()"
+          >
+            ↻ Refresh
+          </button>
+        `
       )
 
       +
 
-      `<div class="grid4">
+      `
 
-        ${kpi(
-          "Eligible Payout",
-          money(
-            payout.eligible
-          ),
-          "Eligible amount"
-        )}
+        <div class="grid g4">
 
-        ${kpi(
-          "Paid Payout",
-          money(
-            payout.paid
-          ),
-          "Paid amount"
-        )}
+          ${kpi(
+            "Eligible",
+            money(summary.eligible),
+            "Payout eligible"
+          )}
 
-        ${kpi(
-          "Payout Balance",
-          money(
-            payout.balance
-          ),
-          "Outstanding"
-        )}
+          ${kpi(
+            "Paid",
+            money(summary.paid),
+            "Paid"
+          )}
 
-        ${kpi(
-          "Pending Records",
-          payout.pending,
-          "Pending / partial"
-        )}
+          ${kpi(
+            "Balance",
+            money(summary.balance),
+            "Outstanding"
+          )}
 
-      </div>
-
-      <div class="section grid2">
-
-        <div class="card">
-
-          <div class="section-head">
-
-            <h2>
-              Monthly CP Contribution
-            </h2>
-
-          </div>
-
-          <div class="chartbox">
-            <canvas
-              id="cpChart">
-            </canvas>
-          </div>
-
-        </div>
-
-        <div class="card">
-
-          <div class="section-head">
-
-            <h2>
-              CP Payout Tracker
-            </h2>
-
-          </div>
-
-          ${table(
-
-            [
-              "Project",
-              "CP",
-              "Eligible",
-              "Paid",
-              "Balance",
-              "Status"
-            ],
-
-            (
-              data.payouts ||
-              []
-            ).map(
-              row => [
-
-                esc(
-                  row["Project Name"] ||
-                  row["Project ID"] ||
-                  "—"
-                ),
-
-                esc(
-                  row["CP Name"] ||
-                  row["CP"] ||
-                  row["Channel Partner"] ||
-                  "—"
-                ),
-
-                money(
-                  row["Eligible Amount"]
-                ),
-
-                money(
-                  row["Paid Amount"]
-                ),
-
-                money(
-                  row["Balance"]
-                ),
-
-                badge(
-                  row["Status"]
-                )
-
-              ]
-            )
-
+          ${kpi(
+            "Pending",
+            summary.pending || 0,
+            "Payout records"
           )}
 
         </div>
 
-      </div>`;
 
-    activeChart =
+        <div class="sec grid g2">
+
+          <div class="card">
+
+            <div class="sec-head">
+
+              <h2>
+                Monthly CP Contribution
+              </h2>
+
+            </div>
+
+            <div class="chart">
+
+              <canvas id="cChart"></canvas>
+
+            </div>
+
+          </div>
+
+
+          <div class="card">
+
+            <div class="sec-head">
+
+              <h2>
+                CP Payout Tracker
+              </h2>
+
+            </div>
+
+            ${
+              htmlTable(
+                [
+                  "Project",
+                  "CP",
+                  "Eligible",
+                  "Paid",
+                  "Balance",
+                  "Status"
+                ],
+
+                (data.payouts || [])
+                  .map(
+                    r => [
+
+                      esc(
+                        r["Project Name"] ||
+                        r["Project ID"]
+                      ),
+
+                      esc(
+                        r["CP Name"] ||
+                        "—"
+                      ),
+
+                      money(
+                        r["Eligible Amount"]
+                      ),
+
+                      money(
+                        r["Paid Amount"]
+                      ),
+
+                      money(
+                        r["Balance"]
+                      ),
+
+                      badge(
+                        r["Status"]
+                      )
+
+                    ]
+                  )
+              )
+            }
+
+          </div>
+
+        </div>
+
+      `;
+
+
+    chart =
       new Chart(
-
         document.getElementById(
-          "cpChart"
+          "cChart"
         ),
-
         {
 
           type:"line",
@@ -5263,13 +4075,8 @@ async function cp(){
           data:{
 
             labels:
-              (
-                data.monthly ||
-                []
-              ).map(
-                row =>
-                  row.label
-              ),
+              (data.monthly || [])
+                .map(x => x.label),
 
             datasets:[
 
@@ -5277,34 +4084,24 @@ async function cp(){
                 label:"Leads",
 
                 data:
-                  (
-                    data.monthly ||
-                    []
-                  ).map(
-                    row =>
-                      row.leads ||
-                      0
-                  ),
-
-                tension:.3
-
+                  (data.monthly || [])
+                    .map(
+                      x =>
+                        x.leads ||
+                        0
+                    )
               },
 
               {
                 label:"Bookings",
 
                 data:
-                  (
-                    data.monthly ||
-                    []
-                  ).map(
-                    row =>
-                      row.bookings ||
-                      0
-                  ),
-
-                tension:.3
-
+                  (data.monthly || [])
+                    .map(
+                      x =>
+                        x.bookings ||
+                        0
+                    )
               }
 
             ]
@@ -5339,126 +4136,118 @@ async function cp(){
 
 
 /* =========================================================
-   CRM & COLLECTIONS
-   PROJECT FILTER + MONTH CHART
+   CRM
    ========================================================= */
 
 async function crm(
   projectId="ALL"
 ){
 
-  setActive(
-    "crm"
-  );
+  setActive("crm");
 
   destroyChart();
 
+  root.innerHTML =
+    `
+      <div class="loading">
+        Loading CRM…
+      </div>
+    `;
+
+
   try{
 
-    if(!cache.projects){
+    await projectsList();
 
-      const list =
-        await api(
-          "projectList"
-        );
-
-      cache.projects =
-        list.data ||
-        [];
-
-    }
 
     const result =
-      await api(
-        "management",
-        {
-          id:projectId
-        }
+      await getMgmt(
+        projectId
       );
 
-    const crmData =
-      result.crm;
+
+    const data =
+      result.crm ||
+      {};
+
 
     const bookings =
-      result.sales.bookings ||
+      result.sales?.bookings ||
       [];
 
-    document.getElementById(
-      "appRoot"
-    ).innerHTML =
 
-      head(
+    root.innerHTML =
+
+      top(
         "CRM & Collections",
-        "Bookings, collection target and actual collection.",
-        `<button
-          class="btn"
-          onclick="
-            crm(
-              '${projectId}'
-            )
-          "
-        >
-          ↻ Refresh
-        </button>`
+        "Bookings, targets and actual collections.",
+
+        `
+          <button
+            class="btn"
+            onclick="
+              crm(
+                '${projectId}'
+              )
+            "
+          >
+            ↻ Refresh
+          </button>
+        `
       )
 
       +
 
-      filterBar(
+      filter(
         projectId,
         "crm"
       )
 
       +
 
-      `<div class="grid4">
+      `
 
-        ${kpi(
-          "Target",
-          money(
-            crmData.targetAmount
-          ),
-          "Collection target"
-        )}
+        <div class="grid g4">
 
-        ${kpi(
-          "Target Actual",
-          money(
-            crmData.targetActual
-          ),
-          "Target achievement"
-        )}
+          ${kpi(
+            "Target",
+            money(data.targetAmount),
+            "Collection target"
+          )}
 
-        ${kpi(
-          "Collections",
-          money(
-            crmData.collectionAmount
-          ),
-          "Actual collections"
-        )}
+          ${kpi(
+            "Target Actual",
+            money(data.targetActual),
+            "Target achievement"
+          )}
 
-        ${kpi(
-          "Bookings",
-          bookings.length,
-          money(
-            bookings.reduce(
-              (sum,row) =>
-                sum +
-                num(
-                  row["Booking Value"]
-                ),
-              0
+          ${kpi(
+            "Collections",
+            money(data.collectionAmount),
+            "Actual collections"
+          )}
+
+          ${kpi(
+            "Bookings",
+            bookings.length,
+            money(
+              bookings.reduce(
+                (sum,row) =>
+                  sum +
+                  n(
+                    row["Booking Value"]
+                  ),
+                0
+              )
             )
-          )
-        )}
+          )}
 
-      </div>
+        </div>
 
-      <div class="section">
 
-        <div class="card">
+        <div class="sec card">
 
-          <div class="section-head">
+          <div class="sec-head">
 
             <h2>
               Monthly Target vs Collection
@@ -5466,144 +4255,140 @@ async function crm(
 
           </div>
 
-          <div class="chartbox">
-            <canvas
-              id="crmChart">
-            </canvas>
+          <div class="chart">
+
+            <canvas id="crChart"></canvas>
+
           </div>
 
         </div>
 
-      </div>
 
-      <div class="section grid2">
+        <div class="sec grid g2">
 
-        <div class="card">
+          <div class="card">
 
-          <div class="section-head">
+            <div class="sec-head">
 
-            <h2>
-              Collection Tracker
-            </h2>
+              <h2>
+                Collection Tracker
+              </h2>
+
+            </div>
+
+            ${
+              htmlTable(
+                [
+                  "Date",
+                  "Project",
+                  "Lead",
+                  "Amount",
+                  "Mode",
+                  "Status"
+                ],
+
+                (data.collections || [])
+                  .map(
+                    r => [
+
+                      esc(
+                        r["Collection Date"]
+                      ),
+
+                      esc(
+                        r["Project Name"] ||
+                        r["Project ID"]
+                      ),
+
+                      esc(
+                        r["Lead ID"] ||
+                        "—"
+                      ),
+
+                      money(
+                        r["Amount"]
+                      ),
+
+                      esc(
+                        r["Mode"] ||
+                        r["Payment Mode"] ||
+                        "—"
+                      ),
+
+                      badge(
+                        r["Status"]
+                      )
+
+                    ]
+                  )
+              )
+            }
 
           </div>
 
-          ${table(
 
-            [
-              "Date",
-              "Project",
-              "Lead",
-              "Amount",
-              "Mode",
-              "Status"
-            ],
+          <div class="card">
 
-            (
-              crmData.collections ||
-              []
-            ).map(
-              row => [
+            <div class="sec-head">
 
-                esc(
-                  row["Collection Date"] ||
-                  "—"
-                ),
+              <h2>
+                Bookings
+              </h2>
 
-                esc(
-                  row["Project Name"] ||
-                  row["Project ID"]
-                ),
+            </div>
 
-                esc(
-                  row["Lead ID"] ||
-                  "—"
-                ),
+            ${
+              htmlTable(
+                [
+                  "Date",
+                  "Lead",
+                  "Project",
+                  "Unit",
+                  "Value"
+                ],
 
-                money(
-                  row["Amount"]
-                ),
+                bookings.map(
+                  r => [
 
-                esc(
-                  row["Payment Mode"] ||
-                  "—"
-                ),
+                    esc(
+                      r["Booking Date"]
+                    ),
 
-                badge(
-                  row["Status"] ||
-                  "—"
+                    esc(
+                      r["Lead ID"]
+                    ),
+
+                    esc(
+                      r["Project Name"] ||
+                      r["Project ID"]
+                    ),
+
+                    esc(
+                      r["Unit ID"] ||
+                      "—"
+                    ),
+
+                    money(
+                      r["Booking Value"]
+                    )
+
+                  ]
                 )
-
-              ]
-            )
-
-          )}
-
-        </div>
-
-
-        <div class="card">
-
-          <div class="section-head">
-
-            <h2>
-              Bookings
-            </h2>
+              )
+            }
 
           </div>
 
-          ${table(
-
-            [
-              "Date",
-              "Lead",
-              "Project",
-              "Unit",
-              "Value"
-            ],
-
-            bookings.map(
-              row => [
-
-                esc(
-                  row["Booking Date"] ||
-                  "—"
-                ),
-
-                esc(
-                  row["Lead ID"]
-                ),
-
-                esc(
-                  row["Project Name"] ||
-                  row["Project ID"]
-                ),
-
-                esc(
-                  row["Unit ID"] ||
-                  "—"
-                ),
-
-                money(
-                  row["Booking Value"]
-                )
-
-              ]
-            )
-
-          )}
-
         </div>
 
-      </div>`;
+      `;
 
-    activeChart =
+
+    chart =
       new Chart(
-
         document.getElementById(
-          "crmChart"
+          "crChart"
         ),
-
         {
 
           type:"bar",
@@ -5611,13 +4396,8 @@ async function crm(
           data:{
 
             labels:
-              (
-                crmData.monthly ||
-                []
-              ).map(
-                row =>
-                  row.label
-              ),
+              (data.monthly || [])
+                .map(x => x.label),
 
             datasets:[
 
@@ -5625,28 +4405,24 @@ async function crm(
                 label:"Target",
 
                 data:
-                  (
-                    crmData.monthly ||
-                    []
-                  ).map(
-                    row =>
-                      row.target ||
-                      0
-                  )
+                  (data.monthly || [])
+                    .map(
+                      x =>
+                        x.target ||
+                        0
+                    )
               },
 
               {
                 label:"Collections",
 
                 data:
-                  (
-                    crmData.monthly ||
-                    []
-                  ).map(
-                    row =>
-                      row.collections ||
-                      0
-                  )
+                  (data.monthly || [])
+                    .map(
+                      x =>
+                        x.collections ||
+                        0
+                    )
               }
 
             ]
@@ -5676,6 +4452,59 @@ async function crm(
     showError(error);
 
   }
+
+}
+
+
+/* =========================================================
+   MONTH LABEL
+   ========================================================= */
+
+function monthLabel(
+  value
+){
+
+  if(
+    !/^\d{4}-\d{2}$/.test(
+      value || ""
+    )
+  ){
+
+    return value || "";
+
+  }
+
+
+  const [
+    year,
+    month
+  ] =
+    value.split("-");
+
+
+  const names = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec"
+  ];
+
+
+  return (
+    names[
+      Number(month) - 1
+    ] +
+    "-" +
+    year
+  );
 
 }
 
@@ -5690,9 +4519,8 @@ function showError(
 
   destroyChart();
 
-  document.getElementById(
-    "appRoot"
-  ).innerHTML = `
+
+  root.innerHTML = `
 
     <div class="error">
 
@@ -5731,48 +4559,62 @@ document
           const page =
             button.dataset.page;
 
-          if(page === "home")
+
+          if(
+            page === "home"
+          ){
+
             home();
 
-          else if(
+          }else if(
             page === "projects"
-          )
+          ){
+
             projects();
 
-          else if(
+          }else if(
             page === "approvals"
-          )
+          ){
+
             approvals();
 
-          else if(
+          }else if(
             page === "finance"
-          )
+          ){
+
             finance();
 
-          else if(
+          }else if(
             page === "marketing"
-          )
+          ){
+
             marketing();
 
-          else if(
+          }else if(
             page === "presales"
-          )
+          ){
+
             presales();
 
-          else if(
+          }else if(
             page === "sales"
-          )
+          ){
+
             sales();
 
-          else if(
+          }else if(
             page === "cp"
-          )
+          ){
+
             cp();
 
-          else if(
+          }else if(
             page === "crm"
-          )
+          ){
+
             crm();
+
+          }
 
         }
       );
