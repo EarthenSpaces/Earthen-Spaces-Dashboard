@@ -396,6 +396,7 @@ th{
 }
 
 @media(max-width:760px){
+
   .side{
     position:static;
     width:100%;
@@ -431,6 +432,7 @@ th{
   .g4{
     grid-template-columns:repeat(2,1fr)
   }
+
 }
 </style>
 </head>
@@ -461,14 +463,24 @@ th{
   </aside>
 
   <main class="main">
+
     <div id="root">
-      <div class="loading">Loading dashboard…</div>
+
+      <div class="loading">
+        Loading dashboard…
+      </div>
+
     </div>
+
   </main>
 
 </div>
 
 <script>
+
+/* =========================================================
+   API
+   ========================================================= */
 
 const API =
 "https://script.google.com/macros/s/AKfycbziG51HnCv6QSyq7EGmLQfOc4_zBLPMEAO10x0OwLnNtLroqbALgJDhvsCo2dpSda1pyw/exec";
@@ -528,12 +540,14 @@ function money(value){
 
   value = n(value);
 
-  const abs = Math.abs(value);
+  const abs =
+    Math.abs(value);
 
   if(abs >= 10000000){
 
     return "₹" +
-      (value / 10000000).toFixed(2) +
+      (value / 10000000)
+        .toFixed(2) +
       " Cr";
 
   }
@@ -541,31 +555,39 @@ function money(value){
   if(abs >= 100000){
 
     return "₹" +
-      (value / 100000).toFixed(1) +
+      (value / 100000)
+        .toFixed(1) +
       " L";
 
   }
 
   return "₹" +
-    Math.round(value).toLocaleString("en-IN");
+    Math.round(value)
+      .toLocaleString("en-IN");
 
 }
 
 
 function badge(status){
 
-  status = String(status ?? "");
+  status =
+    String(status ?? "");
 
-  const s = status.toLowerCase();
+  const s =
+    status.toLowerCase();
 
-  let cls = "info";
+  let cls =
+    "info";
 
   if(
     s.includes("pending") ||
     s.includes("planned") ||
     s.includes("partial")
   ){
-    cls = "warn";
+
+    cls =
+      "warn";
+
   }
 
   if(
@@ -577,7 +599,10 @@ function badge(status){
     s.includes("achieved") ||
     s.includes("booked")
   ){
-    cls = "good";
+
+    cls =
+      "good";
+
   }
 
   if(
@@ -585,26 +610,43 @@ function badge(status){
     s.includes("delay") ||
     s.includes("blocked")
   ){
-    cls = "bad";
+
+    cls =
+      "bad";
+
   }
 
   return `
+
     <span class="badge ${cls}">
-      ${esc(status || "—")}
+
+      ${esc(
+        status || "—"
+      )}
+
     </span>
+
   `;
 
 }
 
 
-function htmlTable(headers,rows){
+function htmlTable(
+  headers,
+  rows
+){
 
-  if(!rows || !rows.length){
+  if(
+    !rows ||
+    !rows.length
+  ){
 
     return `
+
       <div class="empty">
         No records found.
       </div>
+
     `;
 
   }
@@ -616,15 +658,20 @@ function htmlTable(headers,rows){
       <table>
 
         <thead>
+
           <tr>
+
             ${
               headers
                 .map(
-                  h => `<th>${esc(h)}</th>`
+                  h =>
+                    `<th>${esc(h)}</th>`
                 )
                 .join("")
             }
+
           </tr>
+
         </thead>
 
         <tbody>
@@ -633,7 +680,9 @@ function htmlTable(headers,rows){
             rows
               .map(
                 row => `
+
                   <tr>
+
                     ${
                       row
                         .map(
@@ -642,7 +691,9 @@ function htmlTable(headers,rows){
                         )
                         .join("")
                     }
+
                   </tr>
+
                 `
               )
               .join("")
@@ -659,7 +710,11 @@ function htmlTable(headers,rows){
 }
 
 
-function top(title,subtitle,extra=""){
+function top(
+  title,
+  subtitle,
+  extra=""
+){
 
   return `
 
@@ -682,8 +737,10 @@ function top(title,subtitle,extra=""){
         ${extra}
 
         <span class="live">
+
           <i></i>
           Live
+
         </span>
 
       </div>
@@ -695,7 +752,11 @@ function top(title,subtitle,extra=""){
 }
 
 
-function kpi(label,value,note=""){
+function kpi(
+  label,
+  value,
+  note=""
+){
 
   return `
 
@@ -720,7 +781,10 @@ function kpi(label,value,note=""){
 }
 
 
-function row(label,value){
+function row(
+  label,
+  value
+){
 
   return `
 
@@ -754,16 +818,21 @@ function destroyChart(){
 }
 
 
-function setActive(page){
+function setActive(
+  page
+){
 
   document
-    .querySelectorAll(".nav button")
+    .querySelectorAll(
+      ".nav button"
+    )
     .forEach(
       button => {
 
         button.classList.toggle(
           "active",
-          button.dataset.page === page
+          button.dataset.page ===
+          page
         );
 
       }
@@ -835,15 +904,61 @@ async function api(
   }
 
 
-  const response =
-    await fetch(
-      API +
-      "?" +
-      query.toString()
+  const controller =
+    new AbortController();
+
+
+  const timer =
+    setTimeout(
+      () =>
+        controller.abort(),
+      30000
     );
 
 
-  if(!response.ok){
+  let response;
+
+
+  try{
+
+    response =
+      await fetch(
+        API +
+        "?" +
+        query.toString(),
+        {
+          signal:
+            controller.signal
+        }
+      );
+
+  }catch(error){
+
+    if(
+      error.name ===
+      "AbortError"
+    ){
+
+      throw new Error(
+        "Dashboard API took more than 30 seconds to respond."
+      );
+
+    }
+
+    throw error;
+
+  }finally{
+
+    clearTimeout(
+      timer
+    );
+
+  }
+
+
+  if(
+    !response.ok
+  ){
 
     throw new Error(
       "API request failed (" +
@@ -892,11 +1007,14 @@ async function api(
 
 async function projectsList(){
 
-  if(state.projects){
+  if(
+    state.projects
+  ){
 
     return state.projects;
 
   }
+
 
   const result =
     await api(
@@ -958,7 +1076,9 @@ function projectOptions(
               : ""
           }
         >
+
           ${esc(name)}
+
         </option>
 
       `;
@@ -990,7 +1110,11 @@ function filter(
         "
       >
 
-        ${projectOptions(selected)}
+        ${
+          projectOptions(
+            selected
+          )
+        }
 
       </select>
 
@@ -1011,7 +1135,8 @@ async function getMgmt(
 ){
 
   const key =
-    projectId || "ALL";
+    projectId ||
+    "ALL";
 
 
   if(
@@ -1051,20 +1176,175 @@ async function home(
   force=false
 ){
 
-  setActive("home");
+  setActive(
+    "home"
+  );
+
 
   destroyChart();
 
 
-  document.getElementById(
-    "root"
-  ).innerHTML = `
+  const rootEl =
+    document.getElementById(
+      "root"
+    );
 
-    <div class="loading">
-      Loading dashboard…
-    </div>
 
-  `;
+  /*
+     Render HOME shell immediately.
+     User sees the dashboard immediately
+     while the API loads the actual numbers.
+  */
+
+  rootEl.innerHTML =
+
+    top(
+      "Company Dashboard",
+      "Overall performance across Earthen Spaces.",
+
+      `
+
+        <button
+          class="btn"
+          onclick="home(true)"
+        >
+          ↻ Refresh
+        </button>
+
+      `
+    )
+
+    +
+
+    `
+
+      <div class="grid g6">
+
+        ${kpi(
+          "Projects",
+          "…",
+          "Loading"
+        )}
+
+        ${kpi(
+          "Leads",
+          "…",
+          "Loading"
+        )}
+
+        ${kpi(
+          "Site Visits",
+          "…",
+          "Loading"
+        )}
+
+        ${kpi(
+          "Bookings",
+          "…",
+          "Loading"
+        )}
+
+        ${kpi(
+          "Collections",
+          "…",
+          "Loading"
+        )}
+
+        ${kpi(
+          "Net Cash",
+          "…",
+          "Loading"
+        )}
+
+      </div>
+
+    `
+
+    +
+
+    `
+
+      <div class="sec">
+
+        <div class="sec-head">
+
+          <h2>
+            Projects Overview
+          </h2>
+
+          <span class="sub">
+            Loading live data…
+          </span>
+
+        </div>
+
+        <div class="project-grid">
+
+          <div class="card loading">
+            Loading projects…
+          </div>
+
+          <div class="card loading">
+            Loading projects…
+          </div>
+
+          <div class="card loading">
+            Loading projects…
+          </div>
+
+        </div>
+
+      </div>
+
+    `
+
+    +
+
+    `
+
+      <div class="sec grid g2">
+
+        <div
+          class="card loading"
+          style="min-height:290px"
+        >
+          Loading business trend…
+        </div>
+
+        <div
+          class="card loading"
+          style="min-height:290px"
+        >
+          Loading inventory…
+        </div>
+
+      </div>
+
+    `
+
+    +
+
+    `
+
+      <div class="sec grid g2">
+
+        <div
+          class="card loading"
+          style="min-height:290px"
+        >
+          Loading cash flow…
+        </div>
+
+        <div
+          class="card loading"
+          style="min-height:290px"
+        >
+          Loading finance snapshot…
+        </div>
+
+      </div>
+
+    `;
 
 
   try{
@@ -1106,21 +1386,21 @@ async function home(
       {};
 
 
-    document.getElementById(
-      "root"
-    ).innerHTML =
+    rootEl.innerHTML =
 
       top(
         "Company Dashboard",
         "Overall performance across Earthen Spaces.",
 
         `
+
           <button
             class="btn"
             onclick="home(true)"
           >
             ↻ Refresh
           </button>
+
         `
       )
 
@@ -1132,37 +1412,43 @@ async function home(
 
           ${kpi(
             "Projects",
-            k.totalProjects,
+            k.totalProjects || 0,
             "Portfolio"
           )}
 
           ${kpi(
             "Leads",
-            k.totalLeads,
+            k.totalLeads || 0,
             "All sources"
           )}
 
           ${kpi(
             "Site Visits",
-            k.totalSiteVisits,
+            k.totalSiteVisits || 0,
             `${k.firstVisits || 0} first · ${k.revisits || 0} revisit`
           )}
 
           ${kpi(
             "Bookings",
-            k.totalBookings,
-            money(k.totalBookingValue)
+            k.totalBookings || 0,
+            money(
+              k.totalBookingValue
+            )
           )}
 
           ${kpi(
             "Collections",
-            money(k.totalCollections),
+            money(
+              k.totalCollections
+            ),
             "CRM collections"
           )}
 
           ${kpi(
             "Net Cash",
-            money(k.netCashPosition),
+            money(
+              k.netCashPosition
+            ),
             "Current position"
           )}
 
@@ -1192,7 +1478,9 @@ async function home(
 
             ${
               state.projects
-                .map(projectCard)
+                .map(
+                  projectCard
+                )
                 .join("")
             }
 
@@ -1271,6 +1559,10 @@ async function home(
                 Monthly Cash Flow
               </h2>
 
+              <span class="sub">
+                Inflow vs Outflow
+              </span>
+
             </div>
 
             <div class="chart">
@@ -1294,27 +1586,37 @@ async function home(
 
             ${row(
               "Collections",
-              money(finance.collections)
+              money(
+                finance.collections
+              )
             )}
 
             ${row(
               "Project Payments",
-              money(finance.projectPayments)
+              money(
+                finance.projectPayments
+              )
             )}
 
             ${row(
               "Marketing Payments",
-              money(finance.marketingPayments)
+              money(
+                finance.marketingPayments
+              )
             )}
 
             ${row(
               "Company Expenses",
-              money(finance.companyExpenses)
+              money(
+                finance.companyExpenses
+              )
             )}
 
             ${row(
               "Total Expenses",
-              money(finance.totalExpenses)
+              money(
+                finance.totalExpenses
+              )
             )}
 
           </div>
@@ -1324,22 +1626,30 @@ async function home(
       `;
 
 
-    /* ============================================
-       TREND CHART
-       ============================================ */
+    /* =====================================================
+       HOME TREND
+       ===================================================== */
 
     const months =
       [
         ...new Set(
           [
+
             ...(monthly.leads || [])
-              .map(x => x.month),
+              .map(
+                x => x.month
+              ),
 
             ...(monthly.visits || [])
-              .map(x => x.month),
+              .map(
+                x => x.month
+              ),
 
             ...(monthly.bookings || [])
-              .map(x => x.month)
+              .map(
+                x => x.month
+              )
+
           ]
         )
       ].sort();
@@ -1347,37 +1657,46 @@ async function home(
 
     const leads =
       Object.fromEntries(
-        (monthly.leads || [])
-          .map(
-            x => [
-              x.month,
-              x.count || 0
-            ]
-          )
+        (
+          monthly.leads ||
+          []
+        )
+        .map(
+          x => [
+            x.month,
+            x.count || 0
+          ]
+        )
       );
 
 
     const visits =
       Object.fromEntries(
-        (monthly.visits || [])
-          .map(
-            x => [
-              x.month,
-              x.count || 0
-            ]
-          )
+        (
+          monthly.visits ||
+          []
+        )
+        .map(
+          x => [
+            x.month,
+            x.count || 0
+          ]
+        )
       );
 
 
     const bookings =
       Object.fromEntries(
-        (monthly.bookings || [])
-          .map(
-            x => [
-              x.month,
-              x.count || 0
-            ]
-          )
+        (
+          monthly.bookings ||
+          []
+        )
+        .map(
+          x => [
+            x.month,
+            x.count || 0
+          ]
+        )
       );
 
 
@@ -1388,17 +1707,21 @@ async function home(
         ),
         {
 
-          type:"line",
+          type:
+            "line",
 
           data:{
 
             labels:
-              months.map(monthLabel),
+              months.map(
+                monthLabel
+              ),
 
             datasets:[
 
               {
-                label:"Leads",
+                label:
+                  "Leads",
 
                 data:
                   months.map(
@@ -1407,12 +1730,14 @@ async function home(
                       0
                   ),
 
-                tension:.3
+                tension:
+                  .3
 
               },
 
               {
-                label:"Site Visits",
+                label:
+                  "Site Visits",
 
                 data:
                   months.map(
@@ -1421,12 +1746,14 @@ async function home(
                       0
                   ),
 
-                tension:.3
+                tension:
+                  .3
 
               },
 
               {
-                label:"Bookings",
+                label:
+                  "Bookings",
 
                 data:
                   months.map(
@@ -1435,7 +1762,8 @@ async function home(
                       0
                   ),
 
-                tension:.3
+                tension:
+                  .3
 
               }
 
@@ -1445,14 +1773,19 @@ async function home(
 
           options:{
 
-            responsive:true,
+            responsive:
+              true,
 
-            maintainAspectRatio:false,
+            maintainAspectRatio:
+              false,
 
             plugins:{
+
               legend:{
-                position:"bottom"
+                position:
+                  "bottom"
               }
+
             }
 
           }
@@ -1461,9 +1794,9 @@ async function home(
       );
 
 
-    /* ============================================
+    /* =====================================================
        INVENTORY
-       ============================================ */
+       ===================================================== */
 
     new Chart(
       document.getElementById(
@@ -1471,7 +1804,8 @@ async function home(
       ),
       {
 
-        type:"doughnut",
+        type:
+          "doughnut",
 
         data:{
 
@@ -1484,12 +1818,14 @@ async function home(
 
           datasets:[
             {
+
               data:[
                 inv.booked || 0,
                 inv.available || 0,
                 inv.hold || 0,
                 inv.blocked || 0
               ]
+
             }
           ]
 
@@ -1497,16 +1833,22 @@ async function home(
 
         options:{
 
-          responsive:true,
+          responsive:
+            true,
 
-          maintainAspectRatio:false,
+          maintainAspectRatio:
+            false,
 
-          cutout:"68%",
+          cutout:
+            "68%",
 
           plugins:{
+
             legend:{
-              position:"bottom"
+              position:
+                "bottom"
             }
+
           }
 
         }
@@ -1515,9 +1857,9 @@ async function home(
     );
 
 
-    /* ============================================
+    /* =====================================================
        CASH FLOW
-       ============================================ */
+       ===================================================== */
 
     new Chart(
       document.getElementById(
@@ -1525,39 +1867,53 @@ async function home(
       ),
       {
 
-        type:"bar",
+        type:
+          "bar",
 
         data:{
 
           labels:
-            (monthly.finance || [])
-              .map(x => x.label),
+            (
+              monthly.finance ||
+              []
+            )
+            .map(
+              x => x.label
+            ),
 
           datasets:[
 
             {
-              label:"Inflow",
+              label:
+                "Inflow",
 
               data:
-                (monthly.finance || [])
-                  .map(
-                    x =>
-                      x.inflow ||
-                      0
-                  )
+                (
+                  monthly.finance ||
+                  []
+                )
+                .map(
+                  x =>
+                    x.inflow ||
+                    0
+                )
 
             },
 
             {
-              label:"Outflow",
+              label:
+                "Outflow",
 
               data:
-                (monthly.finance || [])
-                  .map(
-                    x =>
-                      x.outflow ||
-                      0
-                  )
+                (
+                  monthly.finance ||
+                  []
+                )
+                .map(
+                  x =>
+                    x.outflow ||
+                    0
+                )
 
             }
 
@@ -1567,14 +1923,19 @@ async function home(
 
         options:{
 
-          responsive:true,
+          responsive:
+            true,
 
-          maintainAspectRatio:false,
+          maintainAspectRatio:
+            false,
 
           plugins:{
+
             legend:{
-              position:"bottom"
+              position:
+                "bottom"
             }
+
           }
 
         }
@@ -1584,8 +1945,8 @@ async function home(
 
 
     /*
-      IMPORTANT:
-      Load management AFTER Home is visible.
+      Start management loading in the background.
+      It doesn't block Home.
     */
 
     setTimeout(
@@ -1593,7 +1954,8 @@ async function home(
 
         getMgmt(
           "ALL"
-        ).catch(
+        )
+        .catch(
           () => {}
         );
 
@@ -1601,9 +1963,12 @@ async function home(
       300
     );
 
+
   }catch(error){
 
-    showError(error);
+    showError(
+      error
+    );
 
   }
 
@@ -1619,10 +1984,16 @@ function projectCard(
 ){
 
   const total =
-    n(project.units);
+    n(
+      project.units
+    );
+
 
   const booked =
-    n(project.bookedUnits);
+    n(
+      project.bookedUnits
+    );
+
 
   const percentage =
     total
@@ -1741,7 +2112,9 @@ function projectCard(
           </small>
 
           <strong>
-            ${n(project.leads)}
+            ${n(
+              project.leads
+            )}
           </strong>
 
         </div>
@@ -1761,17 +2134,21 @@ function projectCard(
 
 async function projects(){
 
-  setActive("projects");
+  setActive(
+    "projects"
+  );
+
 
   destroyChart();
 
 
-  root.innerHTML =
-    `
-      <div class="loading">
-        Loading projects…
-      </div>
-    `;
+  root.innerHTML = `
+
+    <div class="loading">
+      Loading projects…
+    </div>
+
+  `;
 
 
   try{
@@ -1786,12 +2163,14 @@ async function projects(){
         "Project-wise performance and execution.",
 
         `
+
           <button
             class="btn"
             onclick="projects()"
           >
             ↻ Refresh
           </button>
+
         `
       )
 
@@ -1803,7 +2182,9 @@ async function projects(){
 
           ${
             state.projects
-              .map(projectCard)
+              .map(
+                projectCard
+              )
               .join("")
           }
 
@@ -1813,7 +2194,9 @@ async function projects(){
 
   }catch(error){
 
-    showError(error);
+    showError(
+      error
+    );
 
   }
 
@@ -1828,17 +2211,21 @@ async function openProject(
   projectId
 ){
 
-  setActive("projects");
+  setActive(
+    "projects"
+  );
+
 
   destroyChart();
 
 
-  root.innerHTML =
-    `
-      <div class="loading">
-        Loading project details…
-      </div>
-    `;
+  root.innerHTML = `
+
+    <div class="loading">
+      Loading project details…
+    </div>
+
+  `;
 
 
   try{
@@ -1847,7 +2234,8 @@ async function openProject(
       await api(
         "project",
         {
-          id:projectId
+          id:
+            projectId
         },
         true
       );
@@ -1859,7 +2247,9 @@ async function openProject(
 
   }catch(error){
 
-    showError(error);
+    showError(
+      error
+    );
 
   }
 
@@ -1885,25 +2275,46 @@ function renderProject(
 
   const tabs = [
 
-    ["overview","Overview"],
+    [
+      "overview",
+      "Overview"
+    ],
 
-    ["budget","Budget"],
+    [
+      "budget",
+      "Budget"
+    ],
 
-    ["workorders","Work Orders"],
+    [
+      "workorders",
+      "Work Orders"
+    ],
 
-    ["payments","Payments"],
+    [
+      "payments",
+      "Payments"
+    ],
 
-    ["site","Site Status"],
+    [
+      "site",
+      "Site Status"
+    ],
 
-    ["sales","Leads & Visits"]
+    [
+      "sales",
+      "Leads & Visits"
+    ]
 
   ];
 
 
-  let content = "";
+  let content =
+    "";
 
 
-  if(tab === "overview"){
+  if(
+    tab === "overview"
+  ){
 
     content = `
 
@@ -1911,25 +2322,33 @@ function renderProject(
 
         ${kpi(
           "Budget",
-          money(summary.budget),
+          money(
+            summary.budget
+          ),
           "Budget with GST"
         )}
 
         ${kpi(
           "Actual Payments",
-          money(summary.actualPayments),
+          money(
+            summary.actualPayments
+          ),
           "Paid"
         )}
 
         ${kpi(
           "Work Orders",
           summary.workOrderCount,
-          money(summary.workOrderValue)
+          money(
+            summary.workOrderValue
+          )
         )}
 
         ${kpi(
           "Booking Value",
-          money(summary.bookingValue),
+          money(
+            summary.bookingValue
+          ),
           `${summary.bookings || 0} bookings`
         )}
 
@@ -1977,17 +2396,23 @@ function renderProject(
 
           ${row(
             "Planned Payment Plan",
-            money(summary.plannedPayments)
+            money(
+              summary.plannedPayments
+            )
           )}
 
           ${row(
             "Actual Payments",
-            money(summary.actualPayments)
+            money(
+              summary.actualPayments
+            )
           )}
 
           ${row(
             "Remaining Budget",
-            money(summary.remainingBudget)
+            money(
+              summary.remainingBudget
+            )
           )}
 
           ${row(
@@ -2009,7 +2434,9 @@ function renderProject(
   }
 
 
-  if(tab === "budget"){
+  if(
+    tab === "budget"
+  ){
 
     content = `
 
@@ -2017,6 +2444,7 @@ function renderProject(
 
         ${
           htmlTable(
+
             [
               "Budget ID",
               "Category",
@@ -2025,27 +2453,37 @@ function renderProject(
               "Budget + GST"
             ],
 
-            (data.budget || [])
-              .map(
-                r => [
+            (
+              data.budget ||
+              []
+            )
+            .map(
+              r => [
 
-                  esc(r["Budget ID"]),
+                esc(
+                  r["Budget ID"]
+                ),
 
-                  esc(r["Main Category"]),
+                esc(
+                  r["Main Category"]
+                ),
 
-                  esc(
-                    r["Construction Category"] ||
-                    "—"
-                  ),
+                esc(
+                  r["Construction Category"] ||
+                  "—"
+                ),
 
-                  money(r["Budget"]),
+                money(
+                  r["Budget"]
+                ),
 
-                  money(
-                    r["Budget With GST"]
-                  )
+                money(
+                  r["Budget With GST"]
+                )
 
-                ]
-              )
+              ]
+            )
+
           )
         }
 
@@ -2056,7 +2494,9 @@ function renderProject(
   }
 
 
-  if(tab === "workorders"){
+  if(
+    tab === "workorders"
+  ){
 
     content = `
 
@@ -2064,6 +2504,7 @@ function renderProject(
 
         ${
           htmlTable(
+
             [
               "WO ID",
               "Vendor",
@@ -2073,24 +2514,40 @@ function renderProject(
               "Status"
             ],
 
-            (data.workOrders || [])
-              .map(
-                r => [
+            (
+              data.workOrders ||
+              []
+            )
+            .map(
+              r => [
 
-                  esc(r["WO ID"]),
+                esc(
+                  r["WO ID"]
+                ),
 
-                  esc(r["Vendor"]),
+                esc(
+                  r["Vendor"]
+                ),
 
-                  esc(r["Description"]),
+                esc(
+                  r["Description"]
+                ),
 
-                  money(r["WO Value"]),
+                money(
+                  r["WO Value"]
+                ),
 
-                  esc(r["Timeline"]),
+                esc(
+                  r["Timeline"]
+                ),
 
-                  badge(r["Status"])
+                badge(
+                  r["Status"]
+                )
 
-                ]
-              )
+              ]
+            )
+
           )
         }
 
@@ -2101,7 +2558,9 @@ function renderProject(
   }
 
 
-  if(tab === "payments"){
+  if(
+    tab === "payments"
+  ){
 
     content = `
 
@@ -2117,6 +2576,7 @@ function renderProject(
 
         ${
           htmlTable(
+
             [
               "WO",
               "Vendor",
@@ -2128,28 +2588,48 @@ function renderProject(
               "Status"
             ],
 
-            (data.paymentPlan || [])
-              .map(
-                r => [
+            (
+              data.paymentPlan ||
+              []
+            )
+            .map(
+              r => [
 
-                  esc(r["WO ID"]),
+                esc(
+                  r["WO ID"]
+                ),
 
-                  esc(r["Vendor"]),
+                esc(
+                  r["Vendor"]
+                ),
 
-                  esc(r["Milestone"]),
+                esc(
+                  r["Milestone"]
+                ),
 
-                  esc(r["Due Month"]),
+                esc(
+                  r["Due Month"]
+                ),
 
-                  money(r["Planned Amount"]),
+                money(
+                  r["Planned Amount"]
+                ),
 
-                  money(r["Actual Paid"]),
+                money(
+                  r["Actual Paid"]
+                ),
 
-                  money(r["Balance"]),
+                money(
+                  r["Balance"]
+                ),
 
-                  badge(r["Status"])
+                badge(
+                  r["Status"]
+                )
 
-                ]
-              )
+              ]
+            )
+
           )
         }
 
@@ -2168,6 +2648,7 @@ function renderProject(
 
         ${
           htmlTable(
+
             [
               "Date",
               "WO",
@@ -2178,29 +2659,45 @@ function renderProject(
               "Status"
             ],
 
-            (data.payments || [])
-              .map(
-                r => [
+            (
+              data.payments ||
+              []
+            )
+            .map(
+              r => [
 
-                  esc(r["Payment Date"]),
+                esc(
+                  r["Payment Date"]
+                ),
 
-                  esc(
-                    r["WO ID"] ||
-                    "—"
-                  ),
+                esc(
+                  r["WO ID"] ||
+                  "—"
+                ),
 
-                  esc(r["Vendor"]),
+                esc(
+                  r["Vendor"]
+                ),
 
-                  esc(r["Category"]),
+                esc(
+                  r["Category"]
+                ),
 
-                  money(r["Amount"]),
+                money(
+                  r["Amount"]
+                ),
 
-                  esc(r["Payment Mode"]),
+                esc(
+                  r["Payment Mode"]
+                ),
 
-                  badge(r["Status"])
+                badge(
+                  r["Status"]
+                )
 
-                ]
-              )
+              ]
+            )
+
           )
         }
 
@@ -2211,7 +2708,9 @@ function renderProject(
   }
 
 
-  if(tab === "site"){
+  if(
+    tab === "site"
+  ){
 
     content = `
 
@@ -2219,6 +2718,7 @@ function renderProject(
 
         ${
           htmlTable(
+
             [
               "Unit",
               "Area",
@@ -2231,48 +2731,59 @@ function renderProject(
               "Delay"
             ],
 
-            (data.units || [])
-              .map(
-                r => [
+            (
+              data.units ||
+              []
+            )
+            .map(
+              r => [
 
-                  esc(r.unitId),
+                esc(
+                  r.unitId
+                ),
 
-                  n(
-                    r.areaSqft
-                  ).toLocaleString("en-IN"),
+                n(
+                  r.areaSqft
+                )
+                .toLocaleString(
+                  "en-IN"
+                ),
 
-                  money(r.unitValue),
+                money(
+                  r.unitValue
+                ),
 
-                  badge(
-                    r.availabilityStatus
-                  ),
+                badge(
+                  r.availabilityStatus
+                ),
 
-                  esc(
-                    r.customer ||
-                    "—"
-                  ),
+                esc(
+                  r.customer ||
+                  "—"
+                ),
 
-                  esc(
-                    r.currentStage ||
-                    "—"
-                  ),
+                esc(
+                  r.currentStage ||
+                  "—"
+                ),
 
-                  badge(
-                    r.stageStatus
-                  ),
+                badge(
+                  r.stageStatus
+                ),
 
-                  esc(
-                    r.stageTargetDate ||
-                    "—"
-                  ),
+                esc(
+                  r.stageTargetDate ||
+                  "—"
+                ),
 
-                  esc(
-                    r.delayDays ||
-                    0
-                  )
+                esc(
+                  r.delayDays ||
+                  0
+                )
 
-                ]
-              )
+              ]
+            )
+
           )
         }
 
@@ -2283,7 +2794,9 @@ function renderProject(
   }
 
 
-  if(tab === "sales"){
+  if(
+    tab === "sales"
+  ){
 
     content = `
 
@@ -2301,6 +2814,7 @@ function renderProject(
 
           ${
             htmlTable(
+
               [
                 "Lead ID",
                 "Name",
@@ -2309,35 +2823,41 @@ function renderProject(
                 "Salesperson"
               ],
 
-              (data.leads || [])
-                .map(
-                  r => [
+              (
+                data.leads ||
+                []
+              )
+              .map(
+                r => [
 
-                    esc(r["Lead ID"]),
+                  esc(
+                    r["Lead ID"]
+                  ),
 
-                    esc(
-                      r["Customer Name"] ||
-                      r["Name"] ||
-                      "—"
-                    ),
+                  esc(
+                    r["Customer Name"] ||
+                    r["Name"] ||
+                    "—"
+                  ),
 
-                    esc(
-                      r["Source"] ||
-                      "—"
-                    ),
+                  esc(
+                    r["Source"] ||
+                    "—"
+                  ),
 
-                    esc(
-                      r["Subsource"] ||
-                      "—"
-                    ),
+                  esc(
+                    r["Subsource"] ||
+                    "—"
+                  ),
 
-                    esc(
-                      r["Salesperson"] ||
-                      "—"
-                    )
+                  esc(
+                    r["Salesperson"] ||
+                    "—"
+                  )
 
-                  ]
-                )
+                ]
+              )
+
             )
           }
 
@@ -2356,6 +2876,7 @@ function renderProject(
 
           ${
             htmlTable(
+
               [
                 "Date",
                 "Lead",
@@ -2363,27 +2884,35 @@ function renderProject(
                 "Salesperson"
               ],
 
-              (data.siteVisits || [])
-                .map(
-                  r => [
+              (
+                data.siteVisits ||
+                []
+              )
+              .map(
+                r => [
 
-                    esc(
-                      r["Visit Date"] ||
-                      r["Date"] ||
-                      "—"
-                    ),
+                  esc(
+                    r["Visit Date"] ||
+                    r["Date"] ||
+                    "—"
+                  ),
 
-                    esc(r["Lead ID"]),
+                  esc(
+                    r["Lead ID"]
+                  ),
 
-                    esc(r["Visit Type"]),
+                  esc(
+                    r["Visit Type"]
+                  ),
 
-                    esc(
-                      r["Salesperson"] ||
-                      "—"
-                    )
+                  esc(
+                    r["Salesperson"] ||
+                    "—"
+                  )
 
-                  ]
-                )
+                ]
+              )
+
             )
           }
 
@@ -2396,6 +2925,7 @@ function renderProject(
 
         ${
           htmlTable(
+
             [
               "Date",
               "Lead",
@@ -2404,33 +2934,39 @@ function renderProject(
               "Status"
             ],
 
-            (data.bookings || [])
-              .map(
-                r => [
+            (
+              data.bookings ||
+              []
+            )
+            .map(
+              r => [
 
-                  esc(
-                    r["Booking Date"] ||
-                    r["Date"] ||
-                    "—"
-                  ),
+                esc(
+                  r["Booking Date"] ||
+                  r["Date"] ||
+                  "—"
+                ),
 
-                  esc(r["Lead ID"]),
+                esc(
+                  r["Lead ID"]
+                ),
 
-                  esc(
-                    r["Unit ID"] ||
-                    "—"
-                  ),
+                esc(
+                  r["Unit ID"] ||
+                  "—"
+                ),
 
-                  money(
-                    r["Booking Value"]
-                  ),
+                money(
+                  r["Booking Value"]
+                ),
 
-                  badge(
-                    r["Status"]
-                  )
+                badge(
+                  r["Status"]
+                )
 
-                ]
-              )
+              ]
+            )
+
           )
         }
 
@@ -2445,9 +2981,11 @@ function renderProject(
 
     top(
       project["Project Name"],
+
       `${project["Project Status"]} · ${project["Location"]} · Completion ${project["Expected Completion"]}`,
 
       `
+
         <button
           class="btn"
           onclick="projects()"
@@ -2467,6 +3005,7 @@ function renderProject(
         >
           ↻ Refresh
         </button>
+
       `
     )
 
@@ -2520,16 +3059,21 @@ async function approvals(
   projectId="ALL"
 ){
 
-  setActive("approvals");
+  setActive(
+    "approvals"
+  );
+
 
   destroyChart();
 
-  root.innerHTML =
-    `
-      <div class="loading">
-        Loading approvals…
-      </div>
-    `;
+
+  root.innerHTML = `
+
+    <div class="loading">
+      Loading approvals…
+    </div>
+
+  `;
 
 
   try{
@@ -2570,6 +3114,7 @@ async function approvals(
         "Approval tracker with project and month-wise visibility.",
 
         `
+
           <button
             class="btn"
             onclick="
@@ -2580,6 +3125,7 @@ async function approvals(
           >
             ↻ Refresh
           </button>
+
         `
       )
 
@@ -2642,7 +3188,9 @@ async function approvals(
 
             <div class="chart">
 
-              <canvas id="apChart"></canvas>
+              <canvas
+                id="apChart"
+              ></canvas>
 
             </div>
 
@@ -2675,6 +3223,7 @@ async function approvals(
 
           ${
             htmlTable(
+
               [
                 "Project",
                 "Approval",
@@ -2717,6 +3266,7 @@ async function approvals(
 
                 ]
               )
+
             )
           }
 
@@ -2732,38 +3282,55 @@ async function approvals(
         ),
         {
 
-          type:"bar",
+          type:
+            "bar",
 
           data:{
 
             labels:
-              (data.monthly || [])
-                .map(x => x.label),
+              (
+                data.monthly ||
+                []
+              )
+              .map(
+                x =>
+                  x.label
+              ),
 
             datasets:[
 
               {
-                label:"Completed",
+                label:
+                  "Completed",
 
                 data:
-                  (data.monthly || [])
-                    .map(
-                      x =>
-                        x.completed ||
-                        0
-                    )
+                  (
+                    data.monthly ||
+                    []
+                  )
+                  .map(
+                    x =>
+                      x.completed ||
+                      0
+                  )
+
               },
 
               {
-                label:"Pending",
+                label:
+                  "Pending",
 
                 data:
-                  (data.monthly || [])
-                    .map(
-                      x =>
-                        x.pending ||
-                        0
-                    )
+                  (
+                    data.monthly ||
+                    []
+                  )
+                  .map(
+                    x =>
+                      x.pending ||
+                      0
+                  )
+
               }
 
             ]
@@ -2772,25 +3339,32 @@ async function approvals(
 
           options:{
 
-            responsive:true,
+            responsive:
+              true,
 
-            maintainAspectRatio:false,
+            maintainAspectRatio:
+              false,
 
             plugins:{
+
               legend:{
-                position:"bottom"
+                position:
+                  "bottom"
               }
+
             }
 
           }
 
         }
-
       );
+
 
   }catch(error){
 
-    showError(error);
+    showError(
+      error
+    );
 
   }
 
@@ -2805,16 +3379,21 @@ async function finance(
   projectId="ALL"
 ){
 
-  setActive("finance");
+  setActive(
+    "finance"
+  );
+
 
   destroyChart();
 
-  root.innerHTML =
-    `
-      <div class="loading">
-        Loading finance…
-      </div>
-    `;
+
+  root.innerHTML = `
+
+    <div class="loading">
+      Loading finance…
+    </div>
+
+  `;
 
 
   try{
@@ -2850,18 +3429,28 @@ async function finance(
 
     const marketingTotal =
       marketingPayments.reduce(
-        (sum,row) =>
+        (
+          sum,
+          row
+        ) =>
           sum +
-          n(row["Amount"]),
+          n(
+            row["Amount"]
+          ),
         0
       );
 
 
     const expensesTotal =
       companyExpenses.reduce(
-        (sum,row) =>
+        (
+          sum,
+          row
+        ) =>
           sum +
-          n(row["Amount"]),
+          n(
+            row["Amount"]
+          ),
         0
       );
 
@@ -2873,6 +3462,7 @@ async function finance(
         "Company cash position with project filtering.",
 
         `
+
           <button
             class="btn"
             onclick="
@@ -2883,6 +3473,7 @@ async function finance(
           >
             ↻ Refresh
           </button>
+
         `
       )
 
@@ -2901,19 +3492,25 @@ async function finance(
 
           ${kpi(
             "Collections",
-            money(cash.inflow),
+            money(
+              cash.inflow
+            ),
             "Cash inflow"
           )}
 
           ${kpi(
             "Outflow",
-            money(cash.outflow),
+            money(
+              cash.outflow
+            ),
             "Cash outflow"
           )}
 
           ${kpi(
             "Marketing",
-            money(marketingTotal),
+            money(
+              marketingTotal
+            ),
             "Marketing payments"
           )}
 
@@ -2941,7 +3538,9 @@ async function finance(
 
           <div class="chart">
 
-            <canvas id="fChart"></canvas>
+            <canvas
+              id="fChart"
+            ></canvas>
 
           </div>
 
@@ -2954,17 +3553,23 @@ async function finance(
 
             ${row(
               "Project Payments",
-              money(projectPayments)
+              money(
+                projectPayments
+              )
             )}
 
             ${row(
               "Marketing Payments",
-              money(marketingTotal)
+              money(
+                marketingTotal
+              )
             )}
 
             ${row(
               "Company Expenses",
-              money(expensesTotal)
+              money(
+                expensesTotal
+              )
             )}
 
           </div>
@@ -2974,6 +3579,7 @@ async function finance(
 
             ${
               htmlTable(
+
                 [
                   "Date",
                   "Project",
@@ -2983,37 +3589,41 @@ async function finance(
                   "Status"
                 ],
 
-                (cash.records || [])
-                  .map(
-                    r => [
+                (
+                  cash.records ||
+                  []
+                )
+                .map(
+                  r => [
 
-                      esc(
-                        r["Transaction Date"]
-                      ),
+                    esc(
+                      r["Transaction Date"]
+                    ),
 
-                      esc(
-                        r["Project Name"] ||
-                        r["Project ID"]
-                      ),
+                    esc(
+                      r["Project Name"] ||
+                      r["Project ID"]
+                    ),
 
-                      badge(
-                        r["Direction"]
-                      ),
+                    badge(
+                      r["Direction"]
+                    ),
 
-                      esc(
-                        r["Category"]
-                      ),
+                    esc(
+                      r["Category"]
+                    ),
 
-                      money(
-                        r["Amount"]
-                      ),
+                    money(
+                      r["Amount"]
+                    ),
 
-                      badge(
-                        r["Status"]
-                      )
+                    badge(
+                      r["Status"]
+                    )
 
-                    ]
-                  )
+                  ]
+                )
+
               )
             }
 
@@ -3031,38 +3641,55 @@ async function finance(
         ),
         {
 
-          type:"bar",
+          type:
+            "bar",
 
           data:{
 
             labels:
-              (cash.monthly || [])
-                .map(x => x.label),
+              (
+                cash.monthly ||
+                []
+              )
+              .map(
+                x =>
+                  x.label
+              ),
 
             datasets:[
 
               {
-                label:"Inflow",
+                label:
+                  "Inflow",
 
                 data:
-                  (cash.monthly || [])
-                    .map(
-                      x =>
-                        x.inflow ||
-                        0
-                    )
+                  (
+                    cash.monthly ||
+                    []
+                  )
+                  .map(
+                    x =>
+                      x.inflow ||
+                      0
+                  )
+
               },
 
               {
-                label:"Outflow",
+                label:
+                  "Outflow",
 
                 data:
-                  (cash.monthly || [])
-                    .map(
-                      x =>
-                        x.outflow ||
-                        0
-                    )
+                  (
+                    cash.monthly ||
+                    []
+                  )
+                  .map(
+                    x =>
+                      x.outflow ||
+                      0
+                  )
+
               }
 
             ]
@@ -3071,25 +3698,32 @@ async function finance(
 
           options:{
 
-            responsive:true,
+            responsive:
+              true,
 
-            maintainAspectRatio:false,
+            maintainAspectRatio:
+              false,
 
             plugins:{
+
               legend:{
-                position:"bottom"
+                position:
+                  "bottom"
               }
+
             }
 
           }
 
         }
-
       );
+
 
   }catch(error){
 
-    showError(error);
+    showError(
+      error
+    );
 
   }
 
@@ -3104,16 +3738,21 @@ async function marketing(
   projectId="ALL"
 ){
 
-  setActive("marketing");
+  setActive(
+    "marketing"
+  );
+
 
   destroyChart();
 
-  root.innerHTML =
-    `
-      <div class="loading">
-        Loading marketing…
-      </div>
-    `;
+
+  root.innerHTML = `
+
+    <div class="loading">
+      Loading marketing…
+    </div>
+
+  `;
 
 
   try{
@@ -3154,18 +3793,28 @@ async function marketing(
 
     const totalBudget =
       budget.reduce(
-        (sum,row) =>
+        (
+          sum,
+          row
+        ) =>
           sum +
-          n(row["Budget Amount"]),
+          n(
+            row["Budget Amount"]
+          ),
         0
       );
 
 
     const totalActual =
       budget.reduce(
-        (sum,row) =>
+        (
+          sum,
+          row
+        ) =>
           sum +
-          n(row["Actual Spend"]),
+          n(
+            row["Actual Spend"]
+          ),
         0
       );
 
@@ -3177,6 +3826,7 @@ async function marketing(
         "Budget, spend, leads and GTM activity.",
 
         `
+
           <button
             class="btn"
             onclick="
@@ -3187,6 +3837,7 @@ async function marketing(
           >
             ↻ Refresh
           </button>
+
         `
       )
 
@@ -3205,13 +3856,17 @@ async function marketing(
 
           ${kpi(
             "Budget",
-            money(totalBudget),
+            money(
+              totalBudget
+            ),
             "Planned"
           )}
 
           ${kpi(
             "Actual Spend",
-            money(totalActual),
+            money(
+              totalActual
+            ),
             "Spent"
           )}
 
@@ -3224,9 +3879,14 @@ async function marketing(
           ${kpi(
             "Leads",
             monthlyLeads.reduce(
-              (s,r) =>
-                s +
-                n(r.leads),
+              (
+                sum,
+                r
+              ) =>
+                sum +
+                n(
+                  r.leads
+                ),
               0
             ),
             "Filtered period"
@@ -3249,7 +3909,9 @@ async function marketing(
 
             <div class="chart">
 
-              <canvas id="mChart"></canvas>
+              <canvas
+                id="mChart"
+              ></canvas>
 
             </div>
 
@@ -3268,6 +3930,7 @@ async function marketing(
 
             ${
               htmlTable(
+
                 [
                   "Source",
                   "Leads"
@@ -3276,12 +3939,17 @@ async function marketing(
                 sourceLeads.map(
                   r => [
 
-                    esc(r.source),
+                    esc(
+                      r.source
+                    ),
 
-                    n(r.leads)
+                    n(
+                      r.leads
+                    )
 
                   ]
                 )
+
               )
             }
 
@@ -3302,6 +3970,7 @@ async function marketing(
 
           ${
             htmlTable(
+
               [
                 "Date",
                 "Project",
@@ -3313,21 +3982,30 @@ async function marketing(
               gtm.map(
                 r => [
 
-                  esc(r.Date),
+                  esc(
+                    r.Date
+                  ),
 
                   esc(
                     r["Project Name"] ||
                     r["Project ID"]
                   ),
 
-                  esc(r.Activity),
+                  esc(
+                    r.Activity
+                  ),
 
-                  esc(r.Channel),
+                  esc(
+                    r.Channel
+                  ),
 
-                  badge(r.Status)
+                  badge(
+                    r.Status
+                  )
 
                 ]
               )
+
             )
           }
 
@@ -3343,38 +4021,55 @@ async function marketing(
         ),
         {
 
-          type:"bar",
+          type:
+            "bar",
 
           data:{
 
             labels:
-              (data.monthlyBudget || [])
-                .map(x => x.label),
+              (
+                data.monthlyBudget ||
+                []
+              )
+              .map(
+                x =>
+                  x.label
+              ),
 
             datasets:[
 
               {
-                label:"Budget",
+                label:
+                  "Budget",
 
                 data:
-                  (data.monthlyBudget || [])
-                    .map(
-                      x =>
-                        x.budget ||
-                        0
-                    )
+                  (
+                    data.monthlyBudget ||
+                    []
+                  )
+                  .map(
+                    x =>
+                      x.budget ||
+                      0
+                  )
+
               },
 
               {
-                label:"Actual",
+                label:
+                  "Actual",
 
                 data:
-                  (data.monthlyBudget || [])
-                    .map(
-                      x =>
-                        x.actual ||
-                        0
-                    )
+                  (
+                    data.monthlyBudget ||
+                    []
+                  )
+                  .map(
+                    x =>
+                      x.actual ||
+                      0
+                  )
+
               }
 
             ]
@@ -3383,25 +4078,32 @@ async function marketing(
 
           options:{
 
-            responsive:true,
+            responsive:
+              true,
 
-            maintainAspectRatio:false,
+            maintainAspectRatio:
+              false,
 
             plugins:{
+
               legend:{
-                position:"bottom"
+                position:
+                  "bottom"
               }
+
             }
 
           }
 
         }
-
       );
+
 
   }catch(error){
 
-    showError(error);
+    showError(
+      error
+    );
 
   }
 
@@ -3414,16 +4116,21 @@ async function marketing(
 
 async function presales(){
 
-  setActive("presales");
+  setActive(
+    "presales"
+  );
+
 
   destroyChart();
 
-  root.innerHTML =
-    `
-      <div class="loading">
-        Loading pre-sales…
-      </div>
-    `;
+
+  root.innerHTML = `
+
+    <div class="loading">
+      Loading pre-sales…
+    </div>
+
+  `;
 
 
   try{
@@ -3446,12 +4153,14 @@ async function presales(){
         "Calling activity, connectivity and follow-ups.",
 
         `
+
           <button
             class="btn"
             onclick="presales()"
           >
             ↻ Refresh
           </button>
+
         `
       )
 
@@ -3500,7 +4209,9 @@ async function presales(){
 
           <div class="chart">
 
-            <canvas id="pChart"></canvas>
+            <canvas
+              id="pChart"
+            ></canvas>
 
           </div>
 
@@ -3511,6 +4222,7 @@ async function presales(){
 
           ${
             htmlTable(
+
               [
                 "Date",
                 "Lead",
@@ -3521,36 +4233,46 @@ async function presales(){
                 "Follow-up Date"
               ],
 
-              (data.calls || [])
-                .map(
-                  r => [
+              (
+                data.calls ||
+                []
+              )
+              .map(
+                r => [
 
-                    esc(r["Call Date"]),
+                  esc(
+                    r["Call Date"]
+                  ),
 
-                    esc(r["Lead ID"]),
+                  esc(
+                    r["Lead ID"]
+                  ),
 
-                    esc(
-                      r["Project Name"] ||
-                      r["Project ID"]
-                    ),
+                  esc(
+                    r["Project Name"] ||
+                    r["Project ID"]
+                  ),
 
-                    esc(
-                      r["Presales Person"]
-                    ),
+                  esc(
+                    r["Presales Person"]
+                  ),
 
-                    badge(
-                      r["Connected"]
-                    ),
+                  badge(
+                    r["Connected"]
+                  ),
 
-                    esc(r["Outcome"]),
+                  esc(
+                    r["Outcome"]
+                  ),
 
-                    esc(
-                      r["Follow-up Date"] ||
-                      "—"
-                    )
+                  esc(
+                    r["Follow-up Date"] ||
+                    "—"
+                  )
 
-                  ]
-                )
+                ]
+              )
+
             )
           }
 
@@ -3566,38 +4288,55 @@ async function presales(){
         ),
         {
 
-          type:"line",
+          type:
+            "line",
 
           data:{
 
             labels:
-              (data.monthly || [])
-                .map(x => x.label),
+              (
+                data.monthly ||
+                []
+              )
+              .map(
+                x =>
+                  x.label
+              ),
 
             datasets:[
 
               {
-                label:"Calls",
+                label:
+                  "Calls",
 
                 data:
-                  (data.monthly || [])
-                    .map(
-                      x =>
-                        x.calls ||
-                        0
-                    )
+                  (
+                    data.monthly ||
+                    []
+                  )
+                  .map(
+                    x =>
+                      x.calls ||
+                      0
+                  )
+
               },
 
               {
-                label:"Connected",
+                label:
+                  "Connected",
 
                 data:
-                  (data.monthly || [])
-                    .map(
-                      x =>
-                        x.connected ||
-                        0
-                    )
+                  (
+                    data.monthly ||
+                    []
+                  )
+                  .map(
+                    x =>
+                      x.connected ||
+                      0
+                  )
+
               }
 
             ]
@@ -3606,25 +4345,32 @@ async function presales(){
 
           options:{
 
-            responsive:true,
+            responsive:
+              true,
 
-            maintainAspectRatio:false,
+            maintainAspectRatio:
+              false,
 
             plugins:{
+
               legend:{
-                position:"bottom"
+                position:
+                  "bottom"
               }
+
             }
 
           }
 
         }
-
       );
+
 
   }catch(error){
 
-    showError(error);
+    showError(
+      error
+    );
 
   }
 
@@ -3639,16 +4385,21 @@ async function sales(
   projectId="ALL"
 ){
 
-  setActive("sales");
+  setActive(
+    "sales"
+  );
+
 
   destroyChart();
 
-  root.innerHTML =
-    `
-      <div class="loading">
-        Loading sales…
-      </div>
-    `;
+
+  root.innerHTML = `
+
+    <div class="loading">
+      Loading sales…
+    </div>
+
+  `;
 
 
   try{
@@ -3679,6 +4430,7 @@ async function sales(
         "Inventory and booking details.",
 
         `
+
           <button
             class="btn"
             onclick="
@@ -3689,6 +4441,7 @@ async function sales(
           >
             ↻ Refresh
           </button>
+
         `
       )
 
@@ -3713,7 +4466,9 @@ async function sales(
 
           ${kpi(
             "Booking Value",
-            money(data.bookingValue),
+            money(
+              data.bookingValue
+            ),
             "Total"
           )}
 
@@ -3751,7 +4506,9 @@ async function sales(
 
             <div class="chart">
 
-              <canvas id="sChart"></canvas>
+              <canvas
+                id="sChart"
+              ></canvas>
 
             </div>
 
@@ -3770,6 +4527,7 @@ async function sales(
 
             ${
               htmlTable(
+
                 [
                   "Date",
                   "Project",
@@ -3783,7 +4541,9 @@ async function sales(
                 bookings.map(
                   r => [
 
-                    esc(r["Booking Date"]),
+                    esc(
+                      r["Booking Date"]
+                    ),
 
                     esc(
                       r["Project Name"] ||
@@ -3812,6 +4572,7 @@ async function sales(
 
                   ]
                 )
+
               )
             }
 
@@ -3829,38 +4590,55 @@ async function sales(
         ),
         {
 
-          type:"bar",
+          type:
+            "bar",
 
           data:{
 
             labels:
-              (data.monthly || [])
-                .map(x => x.label),
+              (
+                data.monthly ||
+                []
+              )
+              .map(
+                x =>
+                  x.label
+              ),
 
             datasets:[
 
               {
-                label:"Bookings",
+                label:
+                  "Bookings",
 
                 data:
-                  (data.monthly || [])
-                    .map(
-                      x =>
-                        x.bookings ||
-                        0
-                    )
+                  (
+                    data.monthly ||
+                    []
+                  )
+                  .map(
+                    x =>
+                      x.bookings ||
+                      0
+                  )
+
               },
 
               {
-                label:"Booking Value",
+                label:
+                  "Booking Value",
 
                 data:
-                  (data.monthly || [])
-                    .map(
-                      x =>
-                        x.bookingValue ||
-                        0
-                    )
+                  (
+                    data.monthly ||
+                    []
+                  )
+                  .map(
+                    x =>
+                      x.bookingValue ||
+                      0
+                  )
+
               }
 
             ]
@@ -3869,25 +4647,32 @@ async function sales(
 
           options:{
 
-            responsive:true,
+            responsive:
+              true,
 
-            maintainAspectRatio:false,
+            maintainAspectRatio:
+              false,
 
             plugins:{
+
               legend:{
-                position:"bottom"
+                position:
+                  "bottom"
               }
+
             }
 
           }
 
         }
-
       );
+
 
   }catch(error){
 
-    showError(error);
+    showError(
+      error
+    );
 
   }
 
@@ -3900,16 +4685,21 @@ async function sales(
 
 async function cp(){
 
-  setActive("cp");
+  setActive(
+    "cp"
+  );
+
 
   destroyChart();
 
-  root.innerHTML =
-    `
-      <div class="loading">
-        Loading channel partners…
-      </div>
-    `;
+
+  root.innerHTML = `
+
+    <div class="loading">
+      Loading channel partners…
+    </div>
+
+  `;
 
 
   try{
@@ -3937,12 +4727,14 @@ async function cp(){
         "Contribution and payout tracker.",
 
         `
+
           <button
             class="btn"
             onclick="cp()"
           >
             ↻ Refresh
           </button>
+
         `
       )
 
@@ -3954,19 +4746,25 @@ async function cp(){
 
           ${kpi(
             "Eligible",
-            money(summary.eligible),
+            money(
+              summary.eligible
+            ),
             "Payout eligible"
           )}
 
           ${kpi(
             "Paid",
-            money(summary.paid),
+            money(
+              summary.paid
+            ),
             "Paid"
           )}
 
           ${kpi(
             "Balance",
-            money(summary.balance),
+            money(
+              summary.balance
+            ),
             "Outstanding"
           )}
 
@@ -3993,7 +4791,9 @@ async function cp(){
 
             <div class="chart">
 
-              <canvas id="cChart"></canvas>
+              <canvas
+                id="cChart"
+              ></canvas>
 
             </div>
 
@@ -4012,6 +4812,7 @@ async function cp(){
 
             ${
               htmlTable(
+
                 [
                   "Project",
                   "CP",
@@ -4021,38 +4822,42 @@ async function cp(){
                   "Status"
                 ],
 
-                (data.payouts || [])
-                  .map(
-                    r => [
+                (
+                  data.payouts ||
+                  []
+                )
+                .map(
+                  r => [
 
-                      esc(
-                        r["Project Name"] ||
-                        r["Project ID"]
-                      ),
+                    esc(
+                      r["Project Name"] ||
+                      r["Project ID"]
+                    ),
 
-                      esc(
-                        r["CP Name"] ||
-                        "—"
-                      ),
+                    esc(
+                      r["CP Name"] ||
+                      "—"
+                    ),
 
-                      money(
-                        r["Eligible Amount"]
-                      ),
+                    money(
+                      r["Eligible Amount"]
+                    ),
 
-                      money(
-                        r["Paid Amount"]
-                      ),
+                    money(
+                      r["Paid Amount"]
+                    ),
 
-                      money(
-                        r["Balance"]
-                      ),
+                    money(
+                      r["Balance"]
+                    ),
 
-                      badge(
-                        r["Status"]
-                      )
+                    badge(
+                      r["Status"]
+                    )
 
-                    ]
-                  )
+                  ]
+                )
+
               )
             }
 
@@ -4070,38 +4875,55 @@ async function cp(){
         ),
         {
 
-          type:"line",
+          type:
+            "line",
 
           data:{
 
             labels:
-              (data.monthly || [])
-                .map(x => x.label),
+              (
+                data.monthly ||
+                []
+              )
+              .map(
+                x =>
+                  x.label
+              ),
 
             datasets:[
 
               {
-                label:"Leads",
+                label:
+                  "Leads",
 
                 data:
-                  (data.monthly || [])
-                    .map(
-                      x =>
-                        x.leads ||
-                        0
-                    )
+                  (
+                    data.monthly ||
+                    []
+                  )
+                  .map(
+                    x =>
+                      x.leads ||
+                      0
+                  )
+
               },
 
               {
-                label:"Bookings",
+                label:
+                  "Bookings",
 
                 data:
-                  (data.monthly || [])
-                    .map(
-                      x =>
-                        x.bookings ||
-                        0
-                    )
+                  (
+                    data.monthly ||
+                    []
+                  )
+                  .map(
+                    x =>
+                      x.bookings ||
+                      0
+                  )
+
               }
 
             ]
@@ -4110,25 +4932,32 @@ async function cp(){
 
           options:{
 
-            responsive:true,
+            responsive:
+              true,
 
-            maintainAspectRatio:false,
+            maintainAspectRatio:
+              false,
 
             plugins:{
+
               legend:{
-                position:"bottom"
+                position:
+                  "bottom"
               }
+
             }
 
           }
 
         }
-
       );
+
 
   }catch(error){
 
-    showError(error);
+    showError(
+      error
+    );
 
   }
 
@@ -4143,16 +4972,21 @@ async function crm(
   projectId="ALL"
 ){
 
-  setActive("crm");
+  setActive(
+    "crm"
+  );
+
 
   destroyChart();
 
-  root.innerHTML =
-    `
-      <div class="loading">
-        Loading CRM…
-      </div>
-    `;
+
+  root.innerHTML = `
+
+    <div class="loading">
+      Loading CRM…
+    </div>
+
+  `;
 
 
   try{
@@ -4183,6 +5017,7 @@ async function crm(
         "Bookings, targets and actual collections.",
 
         `
+
           <button
             class="btn"
             onclick="
@@ -4193,6 +5028,7 @@ async function crm(
           >
             ↻ Refresh
           </button>
+
         `
       )
 
@@ -4211,19 +5047,25 @@ async function crm(
 
           ${kpi(
             "Target",
-            money(data.targetAmount),
+            money(
+              data.targetAmount
+            ),
             "Collection target"
           )}
 
           ${kpi(
             "Target Actual",
-            money(data.targetActual),
+            money(
+              data.targetActual
+            ),
             "Target achievement"
           )}
 
           ${kpi(
             "Collections",
-            money(data.collectionAmount),
+            money(
+              data.collectionAmount
+            ),
             "Actual collections"
           )}
 
@@ -4232,7 +5074,10 @@ async function crm(
             bookings.length,
             money(
               bookings.reduce(
-                (sum,row) =>
+                (
+                  sum,
+                  row
+                ) =>
                   sum +
                   n(
                     row["Booking Value"]
@@ -4257,7 +5102,9 @@ async function crm(
 
           <div class="chart">
 
-            <canvas id="crChart"></canvas>
+            <canvas
+              id="crChart"
+            ></canvas>
 
           </div>
 
@@ -4278,6 +5125,7 @@ async function crm(
 
             ${
               htmlTable(
+
                 [
                   "Date",
                   "Project",
@@ -4287,40 +5135,44 @@ async function crm(
                   "Status"
                 ],
 
-                (data.collections || [])
-                  .map(
-                    r => [
+                (
+                  data.collections ||
+                  []
+                )
+                .map(
+                  r => [
 
-                      esc(
-                        r["Collection Date"]
-                      ),
+                    esc(
+                      r["Collection Date"]
+                    ),
 
-                      esc(
-                        r["Project Name"] ||
-                        r["Project ID"]
-                      ),
+                    esc(
+                      r["Project Name"] ||
+                      r["Project ID"]
+                    ),
 
-                      esc(
-                        r["Lead ID"] ||
-                        "—"
-                      ),
+                    esc(
+                      r["Lead ID"] ||
+                      "—"
+                    ),
 
-                      money(
-                        r["Amount"]
-                      ),
+                    money(
+                      r["Amount"]
+                    ),
 
-                      esc(
-                        r["Mode"] ||
-                        r["Payment Mode"] ||
-                        "—"
-                      ),
+                    esc(
+                      r["Mode"] ||
+                      r["Payment Mode"] ||
+                      "—"
+                    ),
 
-                      badge(
-                        r["Status"]
-                      )
+                    badge(
+                      r["Status"]
+                    )
 
-                    ]
-                  )
+                  ]
+                )
+
               )
             }
 
@@ -4339,6 +5191,7 @@ async function crm(
 
             ${
               htmlTable(
+
                 [
                   "Date",
                   "Lead",
@@ -4374,6 +5227,7 @@ async function crm(
 
                   ]
                 )
+
               )
             }
 
@@ -4391,38 +5245,55 @@ async function crm(
         ),
         {
 
-          type:"bar",
+          type:
+            "bar",
 
           data:{
 
             labels:
-              (data.monthly || [])
-                .map(x => x.label),
+              (
+                data.monthly ||
+                []
+              )
+              .map(
+                x =>
+                  x.label
+              ),
 
             datasets:[
 
               {
-                label:"Target",
+                label:
+                  "Target",
 
                 data:
-                  (data.monthly || [])
-                    .map(
-                      x =>
-                        x.target ||
-                        0
-                    )
+                  (
+                    data.monthly ||
+                    []
+                  )
+                  .map(
+                    x =>
+                      x.target ||
+                      0
+                  )
+
               },
 
               {
-                label:"Collections",
+                label:
+                  "Collections",
 
                 data:
-                  (data.monthly || [])
-                    .map(
-                      x =>
-                        x.collections ||
-                        0
-                    )
+                  (
+                    data.monthly ||
+                    []
+                  )
+                  .map(
+                    x =>
+                      x.collections ||
+                      0
+                  )
+
               }
 
             ]
@@ -4431,25 +5302,32 @@ async function crm(
 
           options:{
 
-            responsive:true,
+            responsive:
+              true,
 
-            maintainAspectRatio:false,
+            maintainAspectRatio:
+              false,
 
             plugins:{
+
               legend:{
-                position:"bottom"
+                position:
+                  "bottom"
               }
+
             }
 
           }
 
         }
-
       );
+
 
   }catch(error){
 
-    showError(error);
+    showError(
+      error
+    );
 
   }
 
@@ -4483,6 +5361,7 @@ function monthLabel(
 
 
   const names = [
+
     "Jan",
     "Feb",
     "Mar",
@@ -4495,15 +5374,22 @@ function monthLabel(
     "Oct",
     "Nov",
     "Dec"
+
   ];
 
 
   return (
+
     names[
       Number(month) - 1
-    ] +
+    ]
+
+    +
+
     "-" +
+
     year
+
   );
 
 }
@@ -4520,7 +5406,13 @@ function showError(
   destroyChart();
 
 
-  root.innerHTML = `
+  const rootEl =
+    document.getElementById(
+      "root"
+    );
+
+
+  rootEl.innerHTML = `
 
     <div class="error">
 
